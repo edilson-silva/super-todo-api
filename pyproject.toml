@@ -1,0 +1,46 @@
+[project]
+name = "super-todo-api"
+version = "0.1.0"
+description = "Super ToDo API"
+readme = "README.md"
+requires-python = ">=3.11,<4.0"
+dependencies = ["fastapi[standard]>=0.116.1"]
+
+[dependency-groups]
+dev = ["pytest>=8.4.2", "pytest-cov>=6.2.1", "ruff>=0.12.12", "taskipy>=1.14.1"]
+
+[tool.ruff]
+line-length = 79
+extend-exclude = ["migrations"]
+
+[tool.ruff.lint]
+select = [
+    "I",  # Isort: Imports should be sorted alphabetically, and grouped.
+    "F",  # Pyflakes: Detects various errors in Python code.
+    "E",  # Pycodestyle: Enforces PEP 8 style guide.
+    "W",  # Pycodestyle: Warns about stylistic issues.
+    "PL", # Pylint: Various linting rules from Pylint.
+    "PT", # Pytest: Rules specific to pytest usage.
+]
+fixable = ["ALL"] # Allows Ruff to remove unused imports automatically.
+
+[tool.ruff.format]
+quote-style = "single"
+docstring-code-format = true
+
+[tool.pytest.ini_options]
+pythonpath = "."
+addopts = "-p no:warnings"
+
+[tool.coverage.report]
+omit = ["tests/*"] # Exclude test files from coverage
+
+
+[tool.taskipy.tasks]
+start-dev = "fastapi dev main.py"
+lint = "ruff check"
+pre_format = "ruff check --fix"
+format = "ruff format"
+pre_test = "task lint && task format"
+test = "pytest -s -x --cov=. -vv"
+coverage = "pytest --cov=. --cov-report=html -vv"
