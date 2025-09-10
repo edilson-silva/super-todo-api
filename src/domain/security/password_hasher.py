@@ -8,6 +8,7 @@ class PasswordHasher(ABC):
         Hash a password.
 
         :param password: The plain text password to hash.
+
         :return: The hashed password.
         """
         pass

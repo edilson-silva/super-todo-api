@@ -10,4 +10,4 @@ class UserModel(Base):
     name = Column(String, nullable=False)
     email = Column(String, unique=True, index=True, nullable=False)
     password = Column(String, nullable=False)
-    created_at = Column(DateTime)
+    created_at = Column(DateTime(timezone=True))

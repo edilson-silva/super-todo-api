@@ -1,3 +1,5 @@
+from collections.abc import AsyncGenerator
+
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.domain.entities.user_entity import User
@@ -6,10 +8,17 @@ from src.infrastructure.db.models.user_model import UserModel
 
 
 class UserRepositorySQLAlchemy(UserRepository):
-    def __init__(self, session: AsyncSession):
+    def __init__(self, session: AsyncGenerator[AsyncSession, None]):
         self.session = session
 
     async def create(self, user: User) -> User:
+        """
+        Create a new user in the database.
+
+        :param user: User entity to create.
+
+        :return: The created User entity.
+        """
         user_model = UserModel(
             id=user.id,
             name=user.name,
