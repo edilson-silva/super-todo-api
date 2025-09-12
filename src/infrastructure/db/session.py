@@ -1,7 +1,7 @@
 from collections.abc import AsyncGenerator
 
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
-from sqlalchemy.orm import declarative_base, sessionmaker
+from sqlalchemy.orm import DeclarativeBase, sessionmaker
 
 from src.core.settings import settings
 
@@ -13,8 +13,12 @@ AsyncSessionLocal = sessionmaker(
     bind=engine, class_=AsyncSession, expire_on_commit=False
 )
 
+
 # Base model
-Base = declarative_base()
+class Base(DeclarativeBase):
+    """Base class for all ORM models"""
+
+    pass
 
 
 # Dependency to yield a session per request

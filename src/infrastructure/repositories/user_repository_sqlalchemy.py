@@ -1,8 +1,10 @@
 from collections.abc import AsyncGenerator
 
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.domain.entities.user_entity import User
+from src.domain.exceptions.user_exceptions import UserAlreadyExistsException
 from src.domain.repositories.user_repository import UserRepository
 from src.infrastructure.db.models.user_model import UserModel
 
@@ -19,15 +21,20 @@ class UserRepositorySQLAlchemy(UserRepository):
 
         :return: The created User entity.
         """
-        user_model = UserModel(
-            id=user.id,
-            name=user.name,
-            email=user.email,
-            password=user.password,
-            created_at=user.created_at,
-        )
-        self.session.add(user_model)
-        await self.session.commit()
-        await self.session.refresh(user_model)
+        try:
+            user_model = UserModel(
+                id=user.id,
+                name=user.name,
+                email=user.email,
+                password=user.password,
+                role=user.role,
+                avatar=user.avatar,
+                created_at=user.created_at,
+            )
+            self.session.add(user_model)
+            await self.session.commit()
+            await self.session.refresh(user_model)
 
-        return user
+            return user
+        except IntegrityError:
+            raise UserAlreadyExistsException()
