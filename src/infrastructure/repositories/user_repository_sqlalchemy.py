@@ -1,5 +1,6 @@
 from collections.abc import AsyncGenerator
 
+from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -38,3 +39,16 @@ class UserRepositorySQLAlchemy(UserRepository):
             return user
         except IntegrityError:
             raise UserAlreadyExistsException()
+
+    async def find_by_email(self, email: str) -> User | None:
+        """
+        Find a user baed on its email.
+
+        :param email: Serch email.
+
+        :return: The user if found and None otherwise.
+        """
+        query = select(UserModel).filter(UserModel.email == email)
+        result = await self.session.execute(query)
+
+        return result.scalar_one_or_none()

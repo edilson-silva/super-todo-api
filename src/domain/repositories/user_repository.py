@@ -14,3 +14,14 @@ class UserRepository(ABC):
         :return: The created User entity.
         """
         pass
+
+    @abstractmethod
+    async def find_by_email(self, email: str) -> User | None:
+        """
+        Find a user baed on its email.
+
+        :param email: Serch email.
+
+        :return: The user if found and None otherwise.
+        """
+        pass

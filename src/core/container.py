@@ -3,6 +3,7 @@ from collections.abc import AsyncGenerator
 from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.application.usecases.auth.auth_login_usecase import AuthLoginUseCase
 from src.application.usecases.auth.auth_singup_usecase import AuthSignupUseCase
 from src.application.usecases.user.user_create_usecase import UserCreateUseCase
 from src.domain.repositories.user_repository import UserRepository
@@ -53,6 +54,21 @@ def get_auth_signup_use_case(
     return AuthSignupUseCase(repository, password_hasher)
 
 
+def get_auth_login_use_case(
+    repository: UserRepository = Depends(get_user_repository),
+    password_hasher: PasswordHasher = Depends(get_password_hasher),
+) -> AuthLoginUseCase:
+    """
+    Dependency to get an AuthLoginUseCase instance.
+
+    :param repository: UserRepository dependency.
+    :param password_hasher: PasswordHasher dependency.
+
+    :return: An instance of AuthLoginUseCase.
+    """
+    return AuthLoginUseCase(repository, password_hasher)
+
+
 def get_user_create_use_case(
     repository: UserRepository = Depends(get_user_repository),
     password_hasher: PasswordHasher = Depends(get_password_hasher),
@@ -69,4 +85,5 @@ def get_user_create_use_case(
 
 
 AuthSignupUseCaseDep = Depends(get_auth_signup_use_case)
+AuthLoginUseCaseDep = Depends(get_auth_login_use_case)
 UserCreateUseCaseDep = Depends(get_user_create_use_case)
