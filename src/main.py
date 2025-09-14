@@ -1,6 +1,6 @@
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import FastAPI, status
 from starlette.responses import RedirectResponse
 
 from .core.settings import settings
@@ -29,7 +29,9 @@ app = FastAPI(
 
 @app.get('/')
 async def read_root():
-    return RedirectResponse(url='/docs')
+    return RedirectResponse(
+        url='/docs', status_code=status.HTTP_307_TEMPORARY_REDIRECT
+    )
 
 
 app.include_router(api_router)
