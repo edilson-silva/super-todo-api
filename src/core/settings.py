@@ -9,6 +9,11 @@ class Settings(BaseSettings):
     DATABASE_URL: str = Field(..., env='DATABASE_URL')
     DEBUG: bool = Field(default=False, env='DEBUG')
     APP_NAME: str = Field(default='SuperTodo', env='APP_NAME')
+    ACCESS_TOKEN_TYPE: str = Field(default='Bearer', env='ACCESS_TOKEN_TYPE')
+    ACCESS_TOKEN_ALGORITHM: str = Field(
+        default='HS256', env='ACCESS_TOKEN_ALGORITHM'
+    )
+    ACCESS_TOKEN_SECRET_KEY: str = Field(..., env='ACCESS_TOKEN_SECRET_KEY')
 
     class Config:
         env_file = '.env'

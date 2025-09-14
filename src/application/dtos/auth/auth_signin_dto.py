@@ -1,7 +1,5 @@
 from pydantic import BaseModel, EmailStr
 
-from src.domain.entities.user_role import UserRole
-
 
 class AuthSigninInputDTO(BaseModel):
     email: EmailStr
@@ -9,7 +7,4 @@ class AuthSigninInputDTO(BaseModel):
 
 
 class AuthSigninOutputDTO(BaseModel):
-    id: str
-    name: str
-    role: UserRole
-    avatar: str
+    access_token: str

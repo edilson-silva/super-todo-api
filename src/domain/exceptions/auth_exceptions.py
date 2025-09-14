@@ -8,3 +8,12 @@ class InvalidCredentialsException(DomainException):
 
     def __init__(self):
         super().__init__(self.message)
+
+
+class InvalidTokenException(DomainException):
+    """Raised when trying to find a non registered or invalid user."""
+
+    message = 'Invalid token'
+
+    def __init__(self):
+        super().__init__(self.message)

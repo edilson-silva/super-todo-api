@@ -8,12 +8,16 @@ from src.application.usecases.auth.auth_singup_usecase import AuthSignupUseCase
 from src.application.usecases.user.user_create_usecase import UserCreateUseCase
 from src.domain.repositories.user_repository import UserRepository
 from src.domain.security.password_hasher import PasswordHasher
+from src.domain.security.token_generator import TokenGenerator
 from src.infrastructure.db.session import get_db
 from src.infrastructure.repositories.user_repository_sqlalchemy import (
     UserRepositorySQLAlchemy,
 )
 from src.infrastructure.security.password_hasher_bcrypt import (
     PasswordHasherBcrypt,
+)
+from src.infrastructure.security.token_generator_pyjwt import (
+    TokenGeneratorPyJWT,
 )
 
 
@@ -39,6 +43,15 @@ def get_password_hasher() -> PasswordHasher:
     return PasswordHasherBcrypt()
 
 
+def get_token_generator() -> TokenGenerator:
+    """
+    Dependency to get a TokenGenerator instance.
+
+    :return: An instance of TokenGenerator.
+    """
+    return TokenGeneratorPyJWT()
+
+
 def get_auth_signup_use_case(
     repository: UserRepository = Depends(get_user_repository),
     password_hasher: PasswordHasher = Depends(get_password_hasher),
@@ -57,6 +70,7 @@ def get_auth_signup_use_case(
 def get_auth_signin_use_case(
     repository: UserRepository = Depends(get_user_repository),
     password_hasher: PasswordHasher = Depends(get_password_hasher),
+    token_generator: TokenGenerator = Depends(get_token_generator),
 ) -> AuthSigninUseCase:
     """
     Dependency to get an AuthSigninUseCase instance.
@@ -66,7 +80,7 @@ def get_auth_signin_use_case(
 
     :return: An instance of AuthSigninUseCase.
     """
-    return AuthSigninUseCase(repository, password_hasher)
+    return AuthSigninUseCase(repository, password_hasher, token_generator)
 
 
 def get_user_create_use_case(

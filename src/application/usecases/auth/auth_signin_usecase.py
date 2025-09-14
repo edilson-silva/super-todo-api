@@ -2,22 +2,31 @@ from src.application.dtos.auth.auth_signin_dto import (
     AuthSigninInputDTO,
     AuthSigninOutputDTO,
 )
+from src.application.dtos.security.token_generator_encode_dto import (
+    TokenGeneratorEncodeInputDTO,
+)
 from src.domain.exceptions.auth_exceptions import InvalidCredentialsException
 from src.domain.exceptions.exceptions import NotFoundException
 from src.domain.repositories.user_repository import UserRepository
 from src.domain.security.password_hasher import PasswordHasher
+from src.domain.security.token_generator import TokenGenerator
 
 
 class AuthSigninUseCase:
     def __init__(
-        self, repository: UserRepository, password_hasher: PasswordHasher
+        self,
+        repository: UserRepository,
+        password_hasher: PasswordHasher,
+        token_generator: TokenGenerator,
     ):
         """
         :param repository: UserRepository instance to interact with user.
         :param password_hasher: PasswordHasher instance to hash user password.
+        :param token_genrator: TokenGenerator instance to generate a token.
         """
         self.repository = repository
         self.password_hasher = password_hasher
+        self.token_generator = token_generator
 
     async def execute(self, data: AuthSigninInputDTO) -> AuthSigninOutputDTO:
         """
@@ -39,8 +48,10 @@ class AuthSigninUseCase:
         if not valid_password:
             raise InvalidCredentialsException()
 
-        user_info = AuthSigninOutputDTO(
-            id=str(user.id), name=user.name, role=user.role, avatar=user.avatar
+        token_payload = TokenGeneratorEncodeInputDTO(
+            user_id=str(user.id),
+            user_role=user.role,
         )
+        token = await self.token_generator.async_encode(token_payload)
 
-        return user_info
+        return AuthSigninOutputDTO(access_token=token)
