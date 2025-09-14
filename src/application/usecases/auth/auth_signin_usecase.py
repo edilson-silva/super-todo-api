@@ -1,6 +1,6 @@
-from src.application.dtos.auth.auth_login_dto import (
-    AuthLoginInputDTO,
-    AuthLoginOutputDTO,
+from src.application.dtos.auth.auth_signin_dto import (
+    AuthSigninInputDTO,
+    AuthSigninOutputDTO,
 )
 from src.domain.exceptions.auth_exceptions import InvalidCredentialsException
 from src.domain.exceptions.exceptions import NotFoundException
@@ -8,7 +8,7 @@ from src.domain.repositories.user_repository import UserRepository
 from src.domain.security.password_hasher import PasswordHasher
 
 
-class AuthLoginUseCase:
+class AuthSigninUseCase:
     def __init__(
         self, repository: UserRepository, password_hasher: PasswordHasher
     ):
@@ -19,11 +19,11 @@ class AuthLoginUseCase:
         self.repository = repository
         self.password_hasher = password_hasher
 
-    async def execute(self, data: AuthLoginInputDTO) -> AuthLoginOutputDTO:
+    async def execute(self, data: AuthSigninInputDTO) -> AuthSigninOutputDTO:
         """
-        Perform login getting user info.
+        Perform signin getting user info.
 
-        :param data: The user login data.
+        :param data: The user signin data.
 
         :return: Found user info.
         """
@@ -39,7 +39,7 @@ class AuthLoginUseCase:
         if not valid_password:
             raise InvalidCredentialsException()
 
-        user_info = AuthLoginOutputDTO(
+        user_info = AuthSigninOutputDTO(
             id=str(user.id), name=user.name, role=user.role, avatar=user.avatar
         )
 

@@ -3,12 +3,12 @@ from pydantic import BaseModel, EmailStr
 from src.domain.entities.user_role import UserRole
 
 
-class AuthLoginInputDTO(BaseModel):
+class AuthSigninInputDTO(BaseModel):
     email: EmailStr
     password: str
 
 
-class AuthLoginOutputDTO(BaseModel):
+class AuthSigninOutputDTO(BaseModel):
     id: str
     name: str
     role: UserRole

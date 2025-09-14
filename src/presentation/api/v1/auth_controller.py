@@ -1,13 +1,13 @@
 from fastapi import APIRouter, HTTPException, status
 
-from src.application.dtos.auth.auth_login_dto import (
-    AuthLoginInputDTO,
-    AuthLoginOutputDTO,
+from src.application.dtos.auth.auth_signin_dto import (
+    AuthSigninInputDTO,
+    AuthSigninOutputDTO,
 )
 from src.application.dtos.auth.auth_signup_dto import AuthSignupInputDTO
-from src.application.usecases.auth.auth_login_usecase import AuthLoginUseCase
+from src.application.usecases.auth.auth_signin_usecase import AuthSigninUseCase
 from src.application.usecases.auth.auth_singup_usecase import AuthSignupUseCase
-from src.core.container import AuthLoginUseCaseDep, AuthSignupUseCaseDep
+from src.core.container import AuthSigninUseCaseDep, AuthSignupUseCaseDep
 from src.domain.exceptions.auth_exceptions import InvalidCredentialsException
 from src.domain.exceptions.exceptions import NotFoundException
 from src.domain.exceptions.user_exceptions import UserAlreadyExistsException
@@ -35,15 +35,15 @@ async def signup(
 
 
 @router.post(
-    '/login',
+    '/signin',
     status_code=status.HTTP_201_CREATED,
 )
-async def login(
-    input_dto: AuthLoginInputDTO,
-    use_case: AuthLoginUseCase = AuthLoginUseCaseDep,
-) -> AuthLoginOutputDTO:
+async def signin(
+    input_dto: AuthSigninInputDTO,
+    use_case: AuthSigninUseCase = AuthSigninUseCaseDep,
+) -> AuthSigninOutputDTO:
     """
-    Perform login for a user based on email and password.
+    Perform signin for a user based on email and password.
 
     :return: User info
     """
