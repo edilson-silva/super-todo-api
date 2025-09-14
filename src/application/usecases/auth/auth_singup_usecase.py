@@ -25,17 +25,17 @@ class AuthSignupUseCase:
 
         :return: No response.
         """
-        try:
-            hashed_password = await self.password_hasher.async_hash(
-                data.password
-            )
-            user = User(
-                name=data.name,
-                email=data.email,
-                password=hashed_password,
-                role=UserRole.ADMIN,
-            )
+        user = await self.repository.find_by_email(data.email)
 
-            await self.repository.create(user)
-        except UserAlreadyExistsException as e:
-            raise e
+        if user:
+            raise UserAlreadyExistsException()
+
+        hashed_password = await self.password_hasher.async_hash(data.password)
+        user = User(
+            name=data.name,
+            email=data.email,
+            password=hashed_password,
+            role=UserRole.ADMIN,
+        )
+
+        await self.repository.create(user)
