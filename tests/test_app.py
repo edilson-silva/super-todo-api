@@ -1,13 +1,28 @@
 from fastapi import status
-from fastapi.testclient import TestClient
-
-from src.main import app
+from httpx import Client
 
 
-def test_root_should_return_200():
-    client = TestClient(app)
+class AppTest:
+    def test_root_enpoint_should_return_doc(
+        self, client_with_mock_deps: Client
+    ):
+        response = client_with_mock_deps.get('/')
 
-    response = client.get('/')
+        assert response.status_code == status.HTTP_200_OK
+        assert 'SuperTodo - Swagger UI' in response.text
 
-    assert response.status_code == status.HTTP_200_OK
-    assert 'SuperTodo - Swagger UI' in response.text
+    def test_api_v1_enpoint_should_return_doc(
+        self, client_with_mock_deps: Client
+    ):
+        response = client_with_mock_deps.get('/api/v1')
+
+        assert response.status_code == status.HTTP_200_OK
+        assert 'SuperTodo - Swagger UI' in response.text
+
+    def test_docs_enpoint_should_return_doc(
+        self, client_with_mock_deps: Client
+    ):
+        response = client_with_mock_deps.get('/api/v1')
+
+        assert response.status_code == status.HTTP_200_OK
+        assert 'SuperTodo - Swagger UI' in response.text

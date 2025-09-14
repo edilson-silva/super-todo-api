@@ -1,11 +1,22 @@
 from datetime import datetime, timezone
-from typing import List
+from typing import Generator, List
 
 import pytest
+from fastapi.testclient import TestClient
+from httpx import Client
 
+from src.application.usecases.auth.auth_signin_usecase import AuthSigninUseCase
+from src.application.usecases.auth.auth_singup_usecase import AuthSignupUseCase
+from src.core.container import (
+    get_auth_signin_use_case,
+    get_auth_signup_use_case,
+    get_password_hasher,
+    get_user_repository,
+)
 from src.domain.entities.user_entity import User, UserRole
 from src.domain.repositories.user_repository import UserRepository
 from src.domain.security.password_hasher import PasswordHasher
+from src.main import app
 
 
 @pytest.fixture
@@ -52,3 +63,29 @@ def sample_user() -> User:
         role=UserRole.ADMIN,
     )
     return user
+
+
+@pytest.fixture
+def client_with_mock_deps(
+    fake_user_repository, fake_password_hasher
+) -> Generator[Client, None, None]:
+    def fake_auth_signup_use_case() -> AuthSignupUseCase:
+        return AuthSignupUseCase(fake_user_repository, fake_password_hasher)
+
+    def fake_auth_signin_use_case() -> AuthSigninUseCase:
+        return AuthSigninUseCase(fake_user_repository, fake_password_hasher)
+
+    # Overide dependencies before test
+    app.dependency_overrides[get_user_repository] = fake_user_repository
+    app.dependency_overrides[get_password_hasher] = fake_password_hasher
+    app.dependency_overrides[get_auth_signup_use_case] = (
+        fake_auth_signup_use_case
+    )
+    app.dependency_overrides[get_auth_signin_use_case] = (
+        fake_auth_signin_use_case
+    )
+
+    yield TestClient(app)
+
+    # Cleanup overrides dependencies after test
+    app.dependency_overrides.clear()
