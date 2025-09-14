@@ -2,7 +2,7 @@ from datetime import datetime, timezone
 
 import pytest
 
-from src.domain.entities.user_entity import User
+from src.domain.entities.user_entity import User, UserRole
 from src.domain.repositories.user_repository import UserRepository
 
 
@@ -15,6 +15,7 @@ class TestUserRepository:
             name='User 1',
             email='user1@test.com',
             password='123456789',
+            role=UserRole.ADMIN,
         )
 
         created_user_1 = await fake_user_repository.create(user_1)
@@ -24,6 +25,8 @@ class TestUserRepository:
         assert created_user_1.name == user_1.name
         assert created_user_1.email == user_1.email
         assert created_user_1.password == user_1.password
+        assert created_user_1.role == user_1.role
+        assert created_user_1.avatar == user_1.avatar
         assert isinstance(created_user_1.created_at, datetime)
         assert created_user_1.created_at == datetime(
             2025, 1, 1, 0, 0, 0, tzinfo=timezone.utc
@@ -33,6 +36,8 @@ class TestUserRepository:
             name='User 2',
             email='user2@test.com',
             password='123456789',
+            role=UserRole.USER,
+            avatar='custom-avatar',
         )
 
         created_user_2 = await fake_user_repository.create(user_2)
@@ -42,6 +47,8 @@ class TestUserRepository:
         assert created_user_2.name == user_2.name
         assert created_user_2.email == user_2.email
         assert created_user_2.password == user_2.password
+        assert created_user_2.role == user_2.role
+        assert created_user_2.avatar == user_2.avatar
         assert isinstance(created_user_2.created_at, datetime)
         assert created_user_2.created_at == datetime(
             2025, 1, 1, 0, 0, 0, tzinfo=timezone.utc

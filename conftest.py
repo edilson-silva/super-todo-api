@@ -3,9 +3,9 @@ from typing import List
 
 import pytest
 
-from src.domain.entities.user_entity import User
+from src.domain.entities.user_entity import User, UserRole
 from src.domain.repositories.user_repository import UserRepository
-from src.infrastructure.security.password_hasher import PasswordHasher
+from src.domain.security.password_hasher import PasswordHasher
 
 
 @pytest.fixture
@@ -22,7 +22,7 @@ def fake_user_repository() -> UserRepository:
             self.users.append(user)
             return user
 
-        async def get_by_email(self, email: str) -> User | None:
+        async def find_by_email(self, email: str) -> User | None:
             for user in self.users:
                 if user.email == email:
                     return user
@@ -37,4 +37,18 @@ def fake_password_hasher() -> PasswordHasher:
         async def async_hash(self, password: str) -> str:
             return f'hashed_{password}'
 
+        async def async_check(self, password, hashed_password) -> bool:
+            return password == hashed_password
+
     return FakePasswordHasher()
+
+
+@pytest.fixture
+def sample_user() -> User:
+    user = User(
+        name='Test User',
+        email='test@example.com',
+        password='123456789',
+        role=UserRole.ADMIN,
+    )
+    return user

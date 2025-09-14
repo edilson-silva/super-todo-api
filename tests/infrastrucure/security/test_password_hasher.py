@@ -1,6 +1,6 @@
 import pytest
 
-from src.infrastructure.security.password_hasher import PasswordHasher
+from src.domain.security.password_hasher import PasswordHasher
 
 
 @pytest.mark.asyncio
