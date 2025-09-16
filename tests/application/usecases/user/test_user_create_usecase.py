@@ -8,6 +8,7 @@ from src.application.dtos.user.user_create_dto import (
 )
 from src.application.usecases.user.user_create_usecase import UserCreateUseCase
 from src.domain.entities.user_role import UserRole
+from src.domain.exceptions.user_exceptions import UserAlreadyExistsException
 from src.domain.repositories.user_repository import UserRepository
 from src.domain.security.password_hasher import PasswordHasher
 
@@ -40,3 +41,24 @@ class TestUserCreateUsecase:
         assert user.password == f'hashed_{user_create_dto.password}'
         assert user.role == UserRole.ADMIN
         assert isinstance(user.created_at, datetime)
+
+    async def test_existing_user_should_raise_exception(
+        self,
+        fake_user_repository: UserRepository,
+        fake_password_hasher: PasswordHasher,
+    ):
+        user_create_dto = UserCreateInputDTO(
+            name='Test User',
+            email='test@example.com',
+            password='123456789',
+        )
+        user_create_usecase = UserCreateUseCase(
+            fake_user_repository, fake_password_hasher
+        )
+
+        await user_create_usecase.execute(user_create_dto)
+
+        with pytest.raises(UserAlreadyExistsException) as exc:
+            await user_create_usecase.execute(user_create_dto)
+
+        assert str(exc.value) == 'Email already registered'
