@@ -3,6 +3,7 @@ from src.application.dtos.user.user_create_dto import (
     UserCreateOutputDTO,
 )
 from src.domain.entities.user_entity import User
+from src.domain.exceptions.user_exceptions import UserAlreadyExistsException
 from src.domain.repositories.user_repository import UserRepository
 from src.domain.security.password_hasher import PasswordHasher
 
@@ -28,6 +29,11 @@ class UserCreateUseCase:
 
         :return: The created User entity.
         """
+        exists = await self.repository.find_by_email(data.email)
+
+        if exists:
+            raise UserAlreadyExistsException()
+
         hashed_password: str = await self.password_hasher.async_hash(
             data.password
         )
