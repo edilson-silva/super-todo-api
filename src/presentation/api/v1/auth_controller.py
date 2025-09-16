@@ -36,7 +36,7 @@ async def signup(
 
 @router.post(
     '/signin',
-    status_code=status.HTTP_201_CREATED,
+    status_code=status.HTTP_200_OK,
 )
 async def signin(
     input_dto: AuthSigninInputDTO,
