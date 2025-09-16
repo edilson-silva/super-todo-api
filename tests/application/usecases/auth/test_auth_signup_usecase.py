@@ -12,7 +12,7 @@ from src.domain.security.password_hasher import PasswordHasher
 
 @pytest.mark.asyncio
 class TestAuthSignupUsecase:
-    async def test_new_user_should_be_created(
+    async def test_new_user_info_should_return_created_user(
         self,
         fake_user_repository: UserRepository,
         fake_password_hasher: PasswordHasher,
