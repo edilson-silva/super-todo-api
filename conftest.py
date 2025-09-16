@@ -57,7 +57,7 @@ def fake_password_hasher() -> PasswordHasher:
             return f'hashed_{password}'
 
         async def async_check(self, password, hashed_password) -> bool:
-            return password == hashed_password
+            return f'hashed_{password}' == hashed_password
 
     return FakePasswordHasher()
 
