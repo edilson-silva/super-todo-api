@@ -21,7 +21,7 @@ def signin_user_info():
 
 
 class TestAuthSignupController:
-    def test_missing_request_params_should_return_error(
+    def test_missing_request_params_should_return_unprocessable_error(
         self, client_with_mock_deps: Client
     ):
         response = client_with_mock_deps.post('/auth/signup', json={})
@@ -60,7 +60,7 @@ class TestAuthSignupController:
         assert response.status_code == status.HTTP_201_CREATED
         assert response.text == 'null'
 
-    def test_existing_user_info_should_return_conflict(
+    def test_existing_user_info_should_return_conflict_error(
         self, client_with_mock_deps: Client, signup_user_info: dict
     ):
         response1 = client_with_mock_deps.post(
@@ -79,7 +79,7 @@ class TestAuthSignupController:
 
 
 class TestAuthSigninController:
-    def test_missing_request_params_should_return_error(
+    def test_missing_request_params_should_return_unprocessable_error(
         self, client_with_mock_deps: Client
     ):
         response = client_with_mock_deps.post('/auth/signin', json={})
@@ -122,3 +122,16 @@ class TestAuthSigninController:
         assert signin_response.json() == {
             'access_token': 'Bearer fake_token',
         }
+
+    def test_invalid_user_credentials_should_return_unauthorized_error(
+        self,
+        client_with_mock_deps: Client,
+        signup_user_info: dict,
+        signin_user_info: dict,
+    ):
+        response = client_with_mock_deps.post(
+            '/auth/signin', json=signin_user_info
+        )
+
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+        assert response.json() == {'detail': 'Unauthorized'}
