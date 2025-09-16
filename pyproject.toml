@@ -43,6 +43,11 @@ pythonpath = "."
 addopts = "-p no:warnings"
 
 [tool.coverage.report]
+exclude_lines = [
+    "^\\s*pass\\s*$",            # Exclude lines containing only 'pass' (common for abstract methods)
+    "raise NotImplementedError", # Exclude lines containing 'raise NotImplementedError'
+    "# pragma: no cover",        # You can also use the pragma: no cover comment
+]
 omit = [
     "conftest.py",
     "tests/*",
