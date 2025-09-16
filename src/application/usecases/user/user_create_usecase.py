@@ -36,6 +36,8 @@ class UserCreateUseCase:
             name=data.name,
             email=data.email,
             password=hashed_password,
+            role=data.role,
+            avatar=data.avatar,
         )
 
         created_user: User = await self.repository.create(user)
