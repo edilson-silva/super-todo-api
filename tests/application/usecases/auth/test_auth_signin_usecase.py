@@ -9,6 +9,7 @@ from src.application.usecases.auth.auth_signin_usecase import AuthSigninUseCase
 from src.application.usecases.auth.auth_signup_usecase import AuthSignupUseCase
 from src.core.settings import settings
 from src.domain.exceptions.auth_exceptions import InvalidCredentialsException
+from src.domain.exceptions.exceptions import NotFoundException
 from src.domain.repositories.user_repository import UserRepository
 from src.domain.security.password_hasher import PasswordHasher
 from src.domain.security.token_generator import TokenGenerator
@@ -84,3 +85,25 @@ class TestAuthSigninUsecase:
             await signin_usecase.execute(signin_dto)
 
         assert str(exc.value) == 'Invalid credentials'
+
+    async def test_login_with_non_existing_user_should_raise_exception(
+        self,
+        fake_user_repository: UserRepository,
+        fake_password_hasher: PasswordHasher,
+        fake_token_generator: TokenGenerator,
+    ):
+        email = 'test@example.com'
+        password = '123456789'
+
+        signup_dto = AuthSigninInputDTO(
+            email=email,
+            password=password,
+        )
+        signin_usecase = AuthSigninUseCase(
+            fake_user_repository, fake_password_hasher, fake_token_generator
+        )
+
+        with pytest.raises(NotFoundException) as exc:
+            await signin_usecase.execute(signup_dto)
+
+        assert str(exc.value) == 'Not found'
