@@ -6,7 +6,7 @@ from src.application.dtos.auth.auth_signin_dto import (
 )
 from src.application.dtos.auth.auth_signup_dto import AuthSignupInputDTO
 from src.application.usecases.auth.auth_signin_usecase import AuthSigninUseCase
-from src.application.usecases.auth.auth_singup_usecase import AuthSignupUseCase
+from src.application.usecases.auth.auth_signup_usecase import AuthSignupUseCase
 from src.core.container import AuthSigninUseCaseDep, AuthSignupUseCaseDep
 from src.domain.exceptions.auth_exceptions import InvalidCredentialsException
 from src.domain.exceptions.exceptions import NotFoundException

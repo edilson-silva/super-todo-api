@@ -3,7 +3,7 @@ from datetime import datetime
 import pytest
 
 from src.application.dtos.auth.auth_signup_dto import AuthSignupInputDTO
-from src.application.usecases.auth.auth_singup_usecase import AuthSignupUseCase
+from src.application.usecases.auth.auth_signup_usecase import AuthSignupUseCase
 from src.domain.entities.user_role import UserRole
 from src.domain.exceptions.user_exceptions import UserAlreadyExistsException
 from src.domain.repositories.user_repository import UserRepository
