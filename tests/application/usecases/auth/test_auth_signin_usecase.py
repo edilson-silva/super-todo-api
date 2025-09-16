@@ -17,7 +17,7 @@ from src.domain.security.token_generator import TokenGenerator
 
 @pytest.mark.asyncio
 class TestAuthSigninUsecase:
-    async def test_login_with_valid_credentials_should_return_access_token(
+    async def test_valid_credentials_should_return_access_token(
         self,
         fake_user_repository: UserRepository,
         fake_password_hasher: PasswordHasher,
@@ -52,7 +52,7 @@ class TestAuthSigninUsecase:
             response.access_token == f'{settings.ACCESS_TOKEN_TYPE} fake_token'
         )
 
-    async def test_login_with_invalid_credentials_should_raise_exception(
+    async def test_invalid_credentials_should_raise_exception(
         self,
         fake_user_repository: UserRepository,
         fake_password_hasher: PasswordHasher,
@@ -86,7 +86,7 @@ class TestAuthSigninUsecase:
 
         assert str(exc.value) == 'Invalid credentials'
 
-    async def test_login_with_non_existing_user_should_raise_exception(
+    async def test_non_existing_user_should_raise_exception(
         self,
         fake_user_repository: UserRepository,
         fake_password_hasher: PasswordHasher,
