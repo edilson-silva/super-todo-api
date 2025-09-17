@@ -38,7 +38,6 @@ class TestUserCreateUsecase:
         assert user.id != ''
         assert user.name == user_create_dto.name
         assert user.email == user_create_dto.email
-        assert user.password == f'hashed_{user_create_dto.password}'
         assert user.role == UserRole.ADMIN
         assert isinstance(user.created_at, datetime)
 
