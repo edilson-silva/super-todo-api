@@ -18,6 +18,3 @@ class User:
     created_at: datetime = field(
         default_factory=lambda: datetime.now(timezone.utc)
     )
-
-    class Config:
-        from_attributes = True
