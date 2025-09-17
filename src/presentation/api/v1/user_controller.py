@@ -30,7 +30,5 @@ async def user_create(
     try:
         created_user = await use_case.execute(user)
         return created_user
-    except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail=str(e)
-        )
+    except Exception:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST)

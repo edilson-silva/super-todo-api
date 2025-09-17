@@ -29,14 +29,12 @@ class UserCreateUseCase:
 
         :return: The created User entity.
         """
-        exists = await self.repository.find_by_email(data.email)
+        user = await self.repository.find_by_email(data.email)
 
-        if exists:
+        if user:
             raise UserAlreadyExistsException()
 
-        hashed_password: str = await self.password_hasher.async_hash(
-            data.password
-        )
+        hashed_password = await self.password_hasher.async_hash(data.password)
 
         user = User(
             name=data.name,
