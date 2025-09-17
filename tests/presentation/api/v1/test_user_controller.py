@@ -1,0 +1,32 @@
+import pytest
+from fastapi import status
+from httpx import Client
+
+from src.domain.entities.user_role import UserRole
+
+
+@pytest.fixture(scope='class')
+def create_user_info():
+    return {
+        'name': 'Test User',
+        'email': 'test@example.com',
+        'password': '123456789',
+        'role': UserRole.USER,
+    }
+
+
+class TestUserController:
+    def test_create_user_info_should_return_success(
+        self, client_with_mock_deps: Client, create_user_info: dict
+    ):
+        response = client_with_mock_deps.post('/users', json=create_user_info)
+
+        assert response.status_code == status.HTTP_201_CREATED
+        assert response.json() == {
+            'id': '1',
+            'name': 'Test User',
+            'email': 'test@example.com',
+            'role': 'user',
+            'avatar': '',
+            'created_at': '2025-01-01T00:00:00Z',
+        }
