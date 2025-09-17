@@ -30,3 +30,23 @@ class TestUserController:
             'avatar': '',
             'created_at': '2025-01-01T00:00:00Z',
         }
+
+    def test_existing_user_info_should_return_bad_request_error(
+        self, client_with_mock_deps: Client, create_user_info: dict
+    ):
+        response1 = client_with_mock_deps.post('/users', json=create_user_info)
+
+        assert response1.status_code == status.HTTP_201_CREATED
+        assert response1.json() == {
+            'id': '1',
+            'name': 'Test User',
+            'email': 'test@example.com',
+            'role': 'user',
+            'avatar': '',
+            'created_at': '2025-01-01T00:00:00Z',
+        }
+
+        response2 = client_with_mock_deps.post('/users', json=create_user_info)
+
+        assert response2.status_code == status.HTTP_400_BAD_REQUEST
+        assert response2.json() == {'detail': 'Bad Request'}
