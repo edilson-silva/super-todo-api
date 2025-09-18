@@ -15,7 +15,7 @@ def create_user_info():
     }
 
 
-class TestUserController:
+class TestUserCreateController:
     def test_missing_request_params_should_return_unprocessable_error(
         self, client_with_mock_deps: Client
     ):
@@ -79,3 +79,31 @@ class TestUserController:
 
         assert response2.status_code == status.HTTP_400_BAD_REQUEST
         assert response2.json() == {'detail': 'Bad Request'}
+
+
+class TestUserGetController:
+    def test_valid_id_should_return_success(
+        self, client_with_mock_deps: Client, create_user_info: dict
+    ):
+        user_create_response = client_with_mock_deps.post(
+            '/users', json=create_user_info
+        )
+
+        assert user_create_response.status_code == status.HTTP_201_CREATED
+
+        user_created = user_create_response.json()
+
+        user_get_response = client_with_mock_deps.get(
+            f'/users/{user_created["id"]}'
+        )
+
+        assert user_get_response.status_code == status.HTTP_200_OK
+
+        user_found = user_get_response.json()
+
+        assert user_found['id'] == user_created['id']
+        assert user_found['name'] == user_created['name']
+        assert user_found['email'] == user_created['email']
+        assert user_found['role'] == user_created['role']
+        assert user_found['avatar'] == user_created['avatar']
+        assert user_found['created_at'] == user_created['created_at']
