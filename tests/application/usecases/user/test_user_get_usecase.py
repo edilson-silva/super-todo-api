@@ -3,6 +3,7 @@ import pytest
 from src.application.dtos.user.user_create_dto import UserCreateInputDTO
 from src.application.usecases.user.user_create_usecase import UserCreateUseCase
 from src.application.usecases.user.user_get_usecase import UserGetUseCase
+from src.domain.exceptions.exceptions import NotFoundException
 from src.domain.repositories.user_repository import UserRepository
 from src.domain.security.password_hasher import PasswordHasher
 
@@ -37,3 +38,17 @@ class TestUserGetUsecase:
         assert user_found.role == user_created.role
         assert user_found.avatar == user_created.avatar
         assert user_found.created_at == user_created.created_at
+
+    async def test_invalid_id_should_raise_exception(
+        self,
+        fake_user_repository: UserRepository,
+        fake_password_hasher: PasswordHasher,
+    ):
+        user_get_usecase = UserGetUseCase(
+            fake_user_repository, fake_password_hasher
+        )
+
+        with pytest.raises(NotFoundException) as exc:
+            await user_get_usecase.execute('random-uuid')
+
+        assert str(exc.value) == 'Not found'
