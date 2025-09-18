@@ -49,9 +49,19 @@ class UserRepositorySQLAlchemy(UserRepository):
         :return: The user if found and None otherwise.
         """
         query = select(UserModel).filter(UserModel.email == email)
-        result = await self.session.execute(query)
+        query = await self.session.execute(query)
+        result = query.scalar_one_or_none()
 
-        return result.scalar_one_or_none()
+        if result:
+            return User(
+                id=str(result.id),
+                name=result.name,
+                email=result.email,
+                password=result.password,
+                role=result.role,
+                avatar=result.avatar,
+                created_at=result.created_at,
+            )
 
     async def find_by_id(self, user_id: str) -> User | None:
         """
