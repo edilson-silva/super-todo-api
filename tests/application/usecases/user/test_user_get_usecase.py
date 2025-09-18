@@ -26,9 +26,7 @@ class TestUserGetUsecase:
 
         user_created = await user_create_usecase.execute(user_create_dto)
 
-        user_get_usecase = UserGetUseCase(
-            fake_user_repository, fake_password_hasher
-        )
+        user_get_usecase = UserGetUseCase(fake_user_repository)
 
         user_found = await user_get_usecase.execute(user_created.id)
 
@@ -44,9 +42,7 @@ class TestUserGetUsecase:
         fake_user_repository: UserRepository,
         fake_password_hasher: PasswordHasher,
     ):
-        user_get_usecase = UserGetUseCase(
-            fake_user_repository, fake_password_hasher
-        )
+        user_get_usecase = UserGetUseCase(fake_user_repository)
 
         with pytest.raises(NotFoundException) as exc:
             await user_get_usecase.execute('random-uuid')

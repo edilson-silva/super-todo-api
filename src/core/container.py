@@ -101,17 +101,15 @@ def get_user_create_use_case(
 
 def get_user_get_use_case(
     repository: UserRepository = Depends(get_user_repository),
-    password_hasher: PasswordHasher = Depends(get_password_hasher),
 ) -> UserGetUseCase:
     """
     Dependency to get a UserGetUseCase instance.
 
     :param repository: UserRepository dependency.
-    :param password_hasher: PasswordHasher dependency.
 
     :return: An instance of UserGetUseCase.
     """
-    return UserGetUseCase(repository, password_hasher)
+    return UserGetUseCase(repository)
 
 
 AuthSignupUseCaseDep = Depends(get_auth_signup_use_case)

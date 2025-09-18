@@ -118,7 +118,7 @@ def client_with_mock_deps(
         return UserCreateUseCase(fake_user_repository, fake_password_hasher)
 
     def fake_user_get_use_case() -> UserGetUseCase:
-        return UserGetUseCase(fake_user_repository, fake_password_hasher)
+        return UserGetUseCase(fake_user_repository)
 
     # Overide dependencies before test
     app.dependency_overrides[get_user_repository] = fake_user_repository
