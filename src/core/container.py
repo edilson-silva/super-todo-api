@@ -6,6 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.application.usecases.auth.auth_signin_usecase import AuthSigninUseCase
 from src.application.usecases.auth.auth_signup_usecase import AuthSignupUseCase
 from src.application.usecases.user.user_create_usecase import UserCreateUseCase
+from src.application.usecases.user.user_delete_usecase import UserDeleteUseCase
 from src.application.usecases.user.user_get_usecase import UserGetUseCase
 from src.application.usecases.user.user_list_usecase import UserListUseCase
 from src.domain.repositories.user_repository import UserRepository
@@ -115,7 +116,7 @@ def get_user_get_use_case(
 
 def get_user_list_use_case(
     repository: UserRepository = Depends(get_user_repository),
-) -> UserGetUseCase:
+) -> UserListUseCase:
     """
     Dependency to get a UserListUseCase instance.
 
@@ -126,8 +127,22 @@ def get_user_list_use_case(
     return UserListUseCase(repository)
 
 
+def get_user_delete_use_case(
+    repository: UserRepository = Depends(get_user_repository),
+) -> UserDeleteUseCase:
+    """
+    Dependency to get a UserDeleteUseCase instance.
+
+    :param repository: UserRepository dependency.
+
+    :return: An instance of UserDeleteUseCase.
+    """
+    return UserDeleteUseCase(repository)
+
+
 AuthSignupUseCaseDep = Depends(get_auth_signup_use_case)
 AuthSigninUseCaseDep = Depends(get_auth_signin_use_case)
 UserCreateUseCaseDep = Depends(get_user_create_use_case)
 UserGetUseCaseDep = Depends(get_user_get_use_case)
 UserListUseCaseDep = Depends(get_user_list_use_case)
+UserDeleteUseCaseDep = Depends(get_user_delete_use_case)

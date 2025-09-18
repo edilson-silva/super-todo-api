@@ -7,10 +7,12 @@ from src.application.dtos.user.user_create_dto import (
 from src.application.dtos.user.user_get_dto import UserGetOutputDTO
 from src.application.dtos.user.user_list_dto import UserListOutputDTO
 from src.application.usecases.user.user_create_usecase import UserCreateUseCase
+from src.application.usecases.user.user_delete_usecase import UserDeleteUseCase
 from src.application.usecases.user.user_get_usecase import UserGetUseCase
 from src.application.usecases.user.user_list_usecase import UserListUseCase
 from src.core.container import (
     UserCreateUseCaseDep,
+    UserDeleteUseCaseDep,
     UserGetUseCaseDep,
     UserListUseCaseDep,
 )
@@ -80,3 +82,23 @@ async def user_list(
     """
     users = await use_case.execute()
     return users
+
+
+@router.delete(
+    '/{user_id}',
+    response_model=None,
+    status_code=status.HTTP_200_OK,
+)
+async def user_delete(
+    user_id: str,
+    use_case: UserDeleteUseCase = UserDeleteUseCaseDep,
+):
+    """
+    Delete a user based on its id.
+
+    :param user_id: Id used to delete user.
+    """
+    try:
+        return await use_case.execute(user_id)
+    except Exception:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)

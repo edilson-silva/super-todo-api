@@ -1,7 +1,7 @@
 from collections.abc import AsyncGenerator
 from typing import List
 
-from sqlalchemy import select
+from sqlalchemy import delete, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -115,3 +115,15 @@ class UserRepositorySQLAlchemy(UserRepository):
             )
 
         return users
+
+    async def delete_by_id(self, user_id: str) -> None:
+        """
+        Delete a user baed on its id.
+
+        :param user_id: Serch id.
+
+        :return: None.
+        """
+        query = delete(UserModel).filter(UserModel.id == user_id)
+        await self.session.execute(query)
+        await self.session.commit()

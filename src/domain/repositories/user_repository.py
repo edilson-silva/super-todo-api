@@ -48,3 +48,14 @@ class UserRepository(ABC):
         :return: The user if found and None otherwise.
         """
         pass
+
+    @abstractmethod
+    async def delete_by_id(self, user_id: str) -> None:
+        """
+        Delete a user baed on its id.
+
+        :param user_id: Serch id.
+
+        :return: None.
+        """
+        pass
