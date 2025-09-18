@@ -1,4 +1,4 @@
-from .user_dto import UserOutputDTO
+from .user_output_dto import UserOutputDTO
 
 
 class UserGetOutputDTO(UserOutputDTO):
