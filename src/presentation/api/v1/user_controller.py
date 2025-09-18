@@ -5,9 +5,15 @@ from src.application.dtos.user.user_create_dto import (
     UserCreateOutputDTO,
 )
 from src.application.dtos.user.user_get_dto import UserGetOutputDTO
+from src.application.dtos.user.user_list_dto import UserListOutputDTO
 from src.application.usecases.user.user_create_usecase import UserCreateUseCase
 from src.application.usecases.user.user_get_usecase import UserGetUseCase
-from src.core.container import UserCreateUseCaseDep, UserGetUseCaseDep
+from src.application.usecases.user.user_list_usecase import UserListUseCase
+from src.core.container import (
+    UserCreateUseCaseDep,
+    UserGetUseCaseDep,
+    UserListUseCaseDep,
+)
 
 router = APIRouter(prefix='/users', tags=['users'])
 
@@ -57,3 +63,20 @@ async def user_get(
         return user
     except Exception:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+
+
+@router.get(
+    '/',
+    response_model=UserListOutputDTO,
+    status_code=status.HTTP_200_OK,
+)
+async def user_list(
+    use_case: UserListUseCase = UserListUseCaseDep,
+):
+    """
+    Get the list of users.
+
+    :return: List of users.
+    """
+    users = await use_case.execute()
+    return users

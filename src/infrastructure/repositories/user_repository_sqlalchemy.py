@@ -1,4 +1,5 @@
 from collections.abc import AsyncGenerator
+from typing import List
 
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
@@ -85,3 +86,32 @@ class UserRepositorySQLAlchemy(UserRepository):
                 avatar=result.avatar,
                 created_at=result.created_at,
             )
+
+    async def find_all(self) -> List[User]:
+        """
+        Find all users.
+
+        :param user_id: Serch id.
+
+        :return: The user if found and None otherwise.
+        """
+        query = select(UserModel)
+        query = await self.session.execute(query)
+        result = query.scalars()
+
+        users: List[User] = []
+
+        for r in result:
+            users.append(
+                User(
+                    id=str(r.id),
+                    name=r.name,
+                    email=r.email,
+                    password=r.password,
+                    role=r.role,
+                    avatar=r.avatar,
+                    created_at=r.created_at,
+                )
+            )
+
+        return users
