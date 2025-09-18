@@ -4,8 +4,10 @@ from src.application.dtos.user.user_create_dto import (
     UserCreateInputDTO,
     UserCreateOutputDTO,
 )
+from src.application.dtos.user.user_get_dto import UserGetOutputDTO
 from src.application.usecases.user.user_create_usecase import UserCreateUseCase
-from src.core.container import UserCreateUseCaseDep
+from src.application.usecases.user.user_get_usecase import UserGetUseCase
+from src.core.container import UserCreateUseCaseDep, UserGetUseCaseDep
 
 router = APIRouter(prefix='/users', tags=['users'])
 
@@ -32,3 +34,26 @@ async def user_create(
         return created_user
     except Exception:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST)
+
+
+@router.get(
+    '/{user_id}',
+    response_model=UserGetOutputDTO,
+    status_code=status.HTTP_200_OK,
+)
+async def user_get(
+    user_id: str,
+    use_case: UserGetUseCase = UserGetUseCaseDep,
+):
+    """
+    Get a user based on its id.
+
+    :param user_id: Id used to get user.
+
+    :return: Found user info.
+    """
+    try:
+        user = await use_case.execute(user_id)
+        return user
+    except Exception:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)

@@ -1,4 +1,3 @@
-from datetime import datetime
 from typing import Optional
 
 from pydantic import EmailStr
@@ -6,6 +5,7 @@ from pydantic import EmailStr
 from src.domain.entities.user_role import UserRole
 
 from ..base_dto import BaseDTO
+from .user_dto import UserOutputDTO
 
 
 class UserCreateInputDTO(BaseDTO):
@@ -16,10 +16,5 @@ class UserCreateInputDTO(BaseDTO):
     avatar: Optional[str] = ''
 
 
-class UserCreateOutputDTO(BaseDTO):
-    id: str
-    name: str
-    email: str
-    role: UserRole
-    avatar: str
-    created_at: datetime
+class UserCreateOutputDTO(UserOutputDTO):
+    pass

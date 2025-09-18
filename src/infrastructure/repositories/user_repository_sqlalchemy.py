@@ -52,3 +52,26 @@ class UserRepositorySQLAlchemy(UserRepository):
         result = await self.session.execute(query)
 
         return result.scalar_one_or_none()
+
+    async def find_by_id(self, user_id: str) -> User | None:
+        """
+        Find a user baed on its id.
+
+        :param user_id: Serch id.
+
+        :return: The user if found and None otherwise.
+        """
+        query = select(UserModel).filter(UserModel.id == user_id)
+        query = await self.session.execute(query)
+        result = query.scalar_one_or_none()
+
+        if result:
+            return User(
+                id=str(result.id),
+                name=result.name,
+                email=result.email,
+                password=result.password,
+                role=result.role,
+                avatar=result.avatar,
+                created_at=result.created_at,
+            )
