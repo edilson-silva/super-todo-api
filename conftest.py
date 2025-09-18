@@ -14,11 +14,13 @@ from src.application.dtos.security.token_generator_encode_dto import (
 from src.application.usecases.auth.auth_signin_usecase import AuthSigninUseCase
 from src.application.usecases.auth.auth_signup_usecase import AuthSignupUseCase
 from src.application.usecases.user.user_create_usecase import UserCreateUseCase
+from src.application.usecases.user.user_get_usecase import UserGetUseCase
 from src.core.container import (
     get_auth_signin_use_case,
     get_auth_signup_use_case,
     get_password_hasher,
     get_user_create_use_case,
+    get_user_get_use_case,
     get_user_repository,
 )
 from src.core.settings import settings
@@ -47,7 +49,11 @@ def fake_user_repository() -> UserRepository:
             for user in self.users:
                 if user.email == email:
                     return user
-            return None
+
+        async def find_by_id(self, user_id: str) -> User | None:
+            for user in self.users:
+                if user.id == user_id:
+                    return user
 
     return FakeUserRepository()
 
@@ -111,6 +117,9 @@ def client_with_mock_deps(
     def fake_user_create_use_case() -> UserCreateUseCase:
         return UserCreateUseCase(fake_user_repository, fake_password_hasher)
 
+    def fake_user_get_use_case() -> UserGetUseCase:
+        return UserGetUseCase(fake_user_repository, fake_password_hasher)
+
     # Overide dependencies before test
     app.dependency_overrides[get_user_repository] = fake_user_repository
     app.dependency_overrides[get_password_hasher] = fake_password_hasher
@@ -123,6 +132,7 @@ def client_with_mock_deps(
     app.dependency_overrides[get_user_create_use_case] = (
         fake_user_create_use_case
     )
+    app.dependency_overrides[get_user_get_use_case] = fake_user_get_use_case
 
     yield TestClient(app)
 
