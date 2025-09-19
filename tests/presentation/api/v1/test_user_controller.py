@@ -291,3 +291,36 @@ class TestUserUpdatePartialController:
         assert user_updated['avatar'] == user_created['avatar']
         assert user_updated['role'] == user_created['role']
         assert user_updated['created_at'] == user_created['created_at']
+
+    def test_valid_id_and_request_params_should_return_success(
+        self, client_with_mock_deps: Client, create_user_info: dict
+    ):
+        user_create_response = client_with_mock_deps.post(
+            '/users', json=create_user_info
+        )
+
+        assert user_create_response.status_code == status.HTTP_201_CREATED
+
+        user_created = user_create_response.json()
+
+        user_update_partial_info = {
+            'name': 'Updated Name',
+            'password': 'updated_pass',
+            'role': UserRole.USER,
+            'avatar': 'updated_avatar',
+        }
+
+        user_update_response = client_with_mock_deps.put(
+            f'/users/{user_created["id"]}', json=user_update_partial_info
+        )
+
+        assert user_update_response.status_code == status.HTTP_200_OK
+
+        user_updated = user_update_response.json()
+
+        assert user_updated['id'] == user_created['id']
+        assert user_updated['name'] == user_update_partial_info['name']
+        assert user_updated['email'] == user_created['email']
+        assert user_updated['avatar'] == user_update_partial_info['avatar']
+        assert user_updated['role'] == user_update_partial_info['role']
+        assert user_updated['created_at'] == user_created['created_at']
