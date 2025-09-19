@@ -175,3 +175,28 @@ class TestUserDeleteController:
 
         assert response.status_code == status.HTTP_404_NOT_FOUND
         assert response.json() == {'detail': 'Not Found'}
+
+
+class TestUserUpdateaController:
+    def test_missing_request_params_should_return_unprocessable_error(
+        self, client_with_mock_deps: Client
+    ):
+        response = client_with_mock_deps.put('/users/random-id', json={})
+
+        assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+        assert response.json() == {
+            'detail': [
+                {
+                    'type': 'missing',
+                    'loc': ['body', 'name'],
+                    'msg': 'Field required',
+                    'input': {},
+                },
+                {
+                    'type': 'missing',
+                    'loc': ['body', 'password'],
+                    'msg': 'Field required',
+                    'input': {},
+                },
+            ]
+        }
