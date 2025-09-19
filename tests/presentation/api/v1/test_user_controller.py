@@ -167,3 +167,11 @@ class TestUserDeleteController:
         assert user_delete_response.status_code == status.HTTP_200_OK
 
         assert user_delete_response.json() is None
+
+    def test_invalid_id_should_return_not_found_error(
+        self, client_with_mock_deps: Client, create_user_info: dict
+    ):
+        response = client_with_mock_deps.delete('/users/invalid-id')
+
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+        assert response.json() == {'detail': 'Not Found'}
