@@ -177,7 +177,7 @@ class TestUserDeleteController:
         assert response.json() == {'detail': 'Not Found'}
 
 
-class TestUserUpdateaController:
+class TestUserUpdateController:
     def test_missing_request_params_should_return_unprocessable_error(
         self, client_with_mock_deps: Client
     ):
@@ -261,3 +261,33 @@ class TestUserUpdateaController:
 
         assert response.status_code == status.HTTP_404_NOT_FOUND
         assert response.json() == {'detail': 'Not Found'}
+
+
+class TestUserUpdatePartialController:
+    def test_valid_id_and_empty_request_params_should_return_success(
+        self, client_with_mock_deps: Client, create_user_info: dict
+    ):
+        user_create_response = client_with_mock_deps.post(
+            '/users', json=create_user_info
+        )
+
+        assert user_create_response.status_code == status.HTTP_201_CREATED
+
+        user_created = user_create_response.json()
+
+        user_update_partial_info = {}
+
+        user_update_response = client_with_mock_deps.patch(
+            f'/users/{user_created["id"]}', json=user_update_partial_info
+        )
+
+        assert user_update_response.status_code == status.HTTP_200_OK
+
+        user_updated = user_update_response.json()
+
+        assert user_updated['id'] == user_created['id']
+        assert user_updated['name'] == user_created['name']
+        assert user_updated['email'] == user_created['email']
+        assert user_updated['avatar'] == user_created['avatar']
+        assert user_updated['role'] == user_created['role']
+        assert user_updated['created_at'] == user_created['created_at']
