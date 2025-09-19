@@ -324,3 +324,14 @@ class TestUserUpdatePartialController:
         assert user_updated['avatar'] == user_update_partial_info['avatar']
         assert user_updated['role'] == user_update_partial_info['role']
         assert user_updated['created_at'] == user_created['created_at']
+
+    def test_invalid_id_should_return_not_found_error(
+        self, client_with_mock_deps: Client, create_user_info: dict
+    ):
+        response = client_with_mock_deps.patch(
+            '/users/invalid-id',
+            json={},
+        )
+
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+        assert response.json() == {'detail': 'Not Found'}
