@@ -52,3 +52,39 @@ class TestUserUpdatePartialUsecase:
         assert user_updated.avatar == user_created.avatar
         assert user_updated.role == user_created.role
         assert user_updated.created_at == user_created.created_at
+
+    async def test_valid_id_with_new_password_should_return_updated_user_info(
+        self,
+        fake_user_repository: UserRepository,
+        fake_password_hasher: PasswordHasher,
+    ):
+        user_create_usecase = UserCreateUseCase(
+            fake_user_repository, fake_password_hasher
+        )
+
+        user_created = await user_create_usecase.execute(self.user_create_dto)
+
+        user_update_partial_dto = UserUpdatePartialInputDTO(
+            password='updated_pass',
+        )
+        user_update_partial_usecase = UserUpdatePartialUseCase(
+            fake_user_repository, fake_password_hasher
+        )
+
+        user_updated = await user_update_partial_usecase.execute(
+            user_created.id, user_update_partial_dto
+        )
+
+        assert isinstance(user_updated, UserUpdatePartialOutputDTO)
+        assert user_updated.id == user_created.id
+        assert user_updated.name == user_created.name
+        assert user_updated.email == user_created.email
+        assert user_updated.avatar == user_created.avatar
+        assert user_updated.role == user_created.role
+        assert user_updated.created_at == user_created.created_at
+
+        found_user = await fake_user_repository.find_by_id(user_created.id)
+
+        assert (
+            found_user.password == f'hashed_{user_update_partial_dto.password}'
+        )
