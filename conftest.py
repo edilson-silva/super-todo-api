@@ -15,12 +15,14 @@ from src.application.usecases.auth.auth_signin_usecase import AuthSigninUseCase
 from src.application.usecases.auth.auth_signup_usecase import AuthSignupUseCase
 from src.application.usecases.user.user_create_usecase import UserCreateUseCase
 from src.application.usecases.user.user_get_usecase import UserGetUseCase
+from src.application.usecases.user.user_list_usecase import UserListUseCase
 from src.core.container import (
     get_auth_signin_use_case,
     get_auth_signup_use_case,
     get_password_hasher,
     get_user_create_use_case,
     get_user_get_use_case,
+    get_user_list_use_case,
     get_user_repository,
 )
 from src.core.settings import settings
@@ -54,6 +56,15 @@ def fake_user_repository() -> UserRepository:
             for user in self.users:
                 if user.id == user_id:
                     return user
+
+        async def find_all(self) -> List[User]:
+            return self.users
+
+        async def delete_by_id(self, user_id: str) -> None:
+            pass
+
+        async def update(self, user: User) -> User:
+            pass
 
     return FakeUserRepository()
 
@@ -120,6 +131,9 @@ def client_with_mock_deps(
     def fake_user_get_use_case() -> UserGetUseCase:
         return UserGetUseCase(fake_user_repository)
 
+    def fake_user_list_use_case() -> UserListUseCase:
+        return UserListUseCase(fake_user_repository)
+
     # Overide dependencies before test
     app.dependency_overrides[get_user_repository] = fake_user_repository
     app.dependency_overrides[get_password_hasher] = fake_password_hasher
@@ -133,6 +147,7 @@ def client_with_mock_deps(
         fake_user_create_use_case
     )
     app.dependency_overrides[get_user_get_use_case] = fake_user_get_use_case
+    app.dependency_overrides[get_user_list_use_case] = fake_user_list_use_case
 
     yield TestClient(app)
 
