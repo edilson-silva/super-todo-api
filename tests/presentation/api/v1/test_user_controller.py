@@ -198,5 +198,17 @@ class TestUserUpdateaController:
                     'msg': 'Field required',
                     'input': {},
                 },
+                {
+                    'type': 'missing',
+                    'loc': ['body', 'role'],
+                    'msg': 'Field required',
+                    'input': {},
+                },
+                {
+                    'type': 'missing',
+                    'loc': ['body', 'avatar'],
+                    'msg': 'Field required',
+                    'input': {},
+                },
             ]
         }
