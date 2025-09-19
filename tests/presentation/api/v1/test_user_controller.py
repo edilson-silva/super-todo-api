@@ -164,9 +164,7 @@ class TestUserDeleteController:
             f'/users/{user_created["id"]}'
         )
 
-        assert user_delete_response.status_code == status.HTTP_200_OK
-
-        assert user_delete_response.json() is None
+        assert user_delete_response.status_code == status.HTTP_204_NO_CONTENT
 
     def test_invalid_id_should_return_not_found_error(
         self, client_with_mock_deps: Client, create_user_info: dict
