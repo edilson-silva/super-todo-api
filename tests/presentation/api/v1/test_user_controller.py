@@ -146,3 +146,24 @@ class TestUserListController:
         assert user['role'] == user_created['role']
         assert user['avatar'] == user_created['avatar']
         assert user['created_at'] == user_created['created_at']
+
+
+class TestUserDeleteController:
+    def test_valid_id_should_return_success(
+        self, client_with_mock_deps: Client, create_user_info: dict
+    ):
+        user_create_response = client_with_mock_deps.post(
+            '/users', json=create_user_info
+        )
+
+        assert user_create_response.status_code == status.HTTP_201_CREATED
+
+        user_created = user_create_response.json()
+
+        user_delete_response = client_with_mock_deps.delete(
+            f'/users/{user_created["id"]}'
+        )
+
+        assert user_delete_response.status_code == status.HTTP_200_OK
+
+        assert user_delete_response.json() is None
