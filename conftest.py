@@ -17,6 +17,7 @@ from src.application.usecases.user.user_create_usecase import UserCreateUseCase
 from src.application.usecases.user.user_delete_usecase import UserDeleteUseCase
 from src.application.usecases.user.user_get_usecase import UserGetUseCase
 from src.application.usecases.user.user_list_usecase import UserListUseCase
+from src.application.usecases.user.user_update_usecase import UserUpdateUseCase
 from src.core.container import (
     get_auth_signin_use_case,
     get_auth_signup_use_case,
@@ -26,6 +27,7 @@ from src.core.container import (
     get_user_get_use_case,
     get_user_list_use_case,
     get_user_repository,
+    get_user_update_use_case,
 )
 from src.core.settings import settings
 from src.domain.entities.user_entity import User, UserRole
@@ -68,7 +70,15 @@ def fake_user_repository() -> UserRepository:
             )
 
         async def update(self, user: User) -> User:
-            pass
+            for i in range(len(self.users)):
+                if self.users[i].id == user.id:
+                    self.users[i].name = user.name
+                    self.users[i].password = user.password
+                    self.users[i].role = user.role
+                    self.users[i].avatar = user.avatar
+                    self.users[i].created_at = user.created_at
+
+            return user
 
     return FakeUserRepository()
 
@@ -141,6 +151,9 @@ def client_with_mock_deps(
     def fake_user_delete_use_case() -> UserDeleteUseCase:
         return UserDeleteUseCase(fake_user_repository)
 
+    def fake_user_update_use_case() -> UserUpdateUseCase:
+        return UserUpdateUseCase(fake_user_repository, fake_password_hasher)
+
     # Overide dependencies before test
     app.dependency_overrides[get_user_repository] = fake_user_repository
     app.dependency_overrides[get_password_hasher] = fake_password_hasher
@@ -157,6 +170,9 @@ def client_with_mock_deps(
     app.dependency_overrides[get_user_list_use_case] = fake_user_list_use_case
     app.dependency_overrides[get_user_delete_use_case] = (
         fake_user_delete_use_case
+    )
+    app.dependency_overrides[get_user_update_use_case] = (
+        fake_user_update_use_case
     )
 
     yield TestClient(app)
