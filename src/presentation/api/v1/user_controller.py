@@ -101,7 +101,7 @@ async def user_list(
 @router.delete(
     '/{user_id}',
     response_model=None,
-    status_code=status.HTTP_200_OK,
+    status_code=status.HTTP_204_NO_CONTENT,
 )
 async def user_delete(
     user_id: str,
