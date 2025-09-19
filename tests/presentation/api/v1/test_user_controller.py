@@ -115,3 +115,34 @@ class TestUserGetController:
 
         assert response.status_code == status.HTTP_404_NOT_FOUND
         assert response.json() == {'detail': 'Not Found'}
+
+
+class TestUserListController:
+    def test_should_return_success(
+        self, client_with_mock_deps: Client, create_user_info: dict
+    ):
+        user_create_response = client_with_mock_deps.post(
+            '/users', json=create_user_info
+        )
+
+        assert user_create_response.status_code == status.HTTP_201_CREATED
+
+        user_created = user_create_response.json()
+
+        user_list_response = client_with_mock_deps.get('/users')
+
+        assert user_list_response.status_code == status.HTTP_200_OK
+
+        users = user_list_response.json()
+
+        assert isinstance(users, dict)
+        assert len(users['data']) == 1
+
+        user = users['data'][0]
+
+        assert user['id'] == user_created['id']
+        assert user['name'] == user_created['name']
+        assert user['email'] == user_created['email']
+        assert user['role'] == user_created['role']
+        assert user['avatar'] == user_created['avatar']
+        assert user['created_at'] == user_created['created_at']
