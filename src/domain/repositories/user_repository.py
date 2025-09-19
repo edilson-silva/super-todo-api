@@ -59,3 +59,14 @@ class UserRepository(ABC):
         :return: None.
         """
         pass
+
+    @abstractmethod
+    async def update(self, user: User) -> User:
+        """
+        Update a user baed on its id.
+
+        :param user: User entity to update.
+
+        :return: The updated User entity.
+        """
+        pass

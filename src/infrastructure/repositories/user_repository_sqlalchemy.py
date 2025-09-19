@@ -1,7 +1,7 @@
 from collections.abc import AsyncGenerator
 from typing import List
 
-from sqlalchemy import delete, select
+from sqlalchemy import delete, select, update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -127,3 +127,26 @@ class UserRepositorySQLAlchemy(UserRepository):
         query = delete(UserModel).filter(UserModel.id == user_id)
         await self.session.execute(query)
         await self.session.commit()
+
+    async def update(self, user: User) -> User:
+        """
+        Update a user baed on its id.
+
+        :param user: User entity to update.
+
+        :return: The updated User entity.
+        """
+        stmt = (
+            update(UserModel)
+            .where(UserModel.id == user.id)
+            .values(
+                name=user.name,
+                password=user.password,
+                role=user.role,
+                avatar=user.avatar,
+            )
+        )
+        await self.session.execute(stmt)
+        await self.session.commit()
+
+        return user

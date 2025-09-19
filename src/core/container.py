@@ -9,6 +9,7 @@ from src.application.usecases.user.user_create_usecase import UserCreateUseCase
 from src.application.usecases.user.user_delete_usecase import UserDeleteUseCase
 from src.application.usecases.user.user_get_usecase import UserGetUseCase
 from src.application.usecases.user.user_list_usecase import UserListUseCase
+from src.application.usecases.user.user_update_usecase import UserUpdateUseCase
 from src.domain.repositories.user_repository import UserRepository
 from src.domain.security.password_hasher import PasswordHasher
 from src.domain.security.token_generator import TokenGenerator
@@ -140,9 +141,25 @@ def get_user_delete_use_case(
     return UserDeleteUseCase(repository)
 
 
+def get_user_update_use_case(
+    repository: UserRepository = Depends(get_user_repository),
+    password_hasher: PasswordHasher = Depends(get_password_hasher),
+) -> UserUpdateUseCase:
+    """
+    Dependency to get a UserUpdateUseCase instance.
+
+    :param repository: UserRepository dependency.
+    :param password_hasher: PasswordHasher dependency.
+
+    :return: An instance of UserUpdateUseCase.
+    """
+    return UserUpdateUseCase(repository, password_hasher)
+
+
 AuthSignupUseCaseDep = Depends(get_auth_signup_use_case)
 AuthSigninUseCaseDep = Depends(get_auth_signin_use_case)
 UserCreateUseCaseDep = Depends(get_user_create_use_case)
 UserGetUseCaseDep = Depends(get_user_get_use_case)
 UserListUseCaseDep = Depends(get_user_list_use_case)
 UserDeleteUseCaseDep = Depends(get_user_delete_use_case)
+UserUpdateUseCaseDep = Depends(get_user_update_use_case)

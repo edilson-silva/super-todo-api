@@ -6,15 +6,21 @@ from src.application.dtos.user.user_create_dto import (
 )
 from src.application.dtos.user.user_get_dto import UserGetOutputDTO
 from src.application.dtos.user.user_list_dto import UserListOutputDTO
+from src.application.dtos.user.user_update_dto import (
+    UserUpdateInputDTO,
+    UserUpdateOutputDTO,
+)
 from src.application.usecases.user.user_create_usecase import UserCreateUseCase
 from src.application.usecases.user.user_delete_usecase import UserDeleteUseCase
 from src.application.usecases.user.user_get_usecase import UserGetUseCase
 from src.application.usecases.user.user_list_usecase import UserListUseCase
+from src.application.usecases.user.user_update_usecase import UserUpdateUseCase
 from src.core.container import (
     UserCreateUseCaseDep,
     UserDeleteUseCaseDep,
     UserGetUseCaseDep,
     UserListUseCaseDep,
+    UserUpdateUseCaseDep,
 )
 
 router = APIRouter(prefix='/users', tags=['users'])
@@ -100,5 +106,31 @@ async def user_delete(
     """
     try:
         return await use_case.execute(user_id)
+    except Exception:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+
+
+@router.put(
+    '/{user_id}',
+    response_model=UserUpdateOutputDTO,
+    status_code=status.HTTP_200_OK,
+)
+async def user_update(
+    user_id: str,
+    data: UserUpdateInputDTO,
+    use_case: UserUpdateUseCase = UserUpdateUseCaseDep,
+):
+    """
+    Update a based on its id.
+
+    :param user_id: Id used to delete user.
+    :param data: User update data.
+    :param use_case: UserUpdateUseCase instance (injected dependency).
+
+    Returns the created user.
+    """
+    try:
+        updated_user = await use_case.execute(user_id, data)
+        return updated_user
     except Exception:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
