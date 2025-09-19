@@ -10,16 +10,24 @@ from src.application.dtos.user.user_update_dto import (
     UserUpdateInputDTO,
     UserUpdateOutputDTO,
 )
+from src.application.dtos.user.user_update_partial_dto import (
+    UserUpdatePartialInputDTO,
+    UserUpdatePartialOutputDTO,
+)
 from src.application.usecases.user.user_create_usecase import UserCreateUseCase
 from src.application.usecases.user.user_delete_usecase import UserDeleteUseCase
 from src.application.usecases.user.user_get_usecase import UserGetUseCase
 from src.application.usecases.user.user_list_usecase import UserListUseCase
+from src.application.usecases.user.user_update_partial_usecase import (
+    UserUpdatePartialUseCase,
+)
 from src.application.usecases.user.user_update_usecase import UserUpdateUseCase
 from src.core.container import (
     UserCreateUseCaseDep,
     UserDeleteUseCaseDep,
     UserGetUseCaseDep,
     UserListUseCaseDep,
+    UserUpdatePartialUseCaseDep,
     UserUpdateUseCaseDep,
 )
 
@@ -121,13 +129,39 @@ async def user_update(
     use_case: UserUpdateUseCase = UserUpdateUseCaseDep,
 ):
     """
-    Update a based on its id.
+    Update a user based on its id.
 
     :param user_id: Id used to delete user.
     :param data: User update data.
     :param use_case: UserUpdateUseCase instance (injected dependency).
 
-    Returns the created user.
+    Returns the updated user.
+    """
+    try:
+        updated_user = await use_case.execute(user_id, data)
+        return updated_user
+    except Exception:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+
+
+@router.patch(
+    '/{user_id}',
+    response_model=UserUpdatePartialOutputDTO,
+    status_code=status.HTTP_200_OK,
+)
+async def user_update_partial(
+    user_id: str,
+    data: UserUpdatePartialInputDTO,
+    use_case: UserUpdatePartialUseCase = UserUpdatePartialUseCaseDep,
+):
+    """
+    Update a user based on its id.
+
+    :param user_id: Id used to delete user.
+    :param data: User update data.
+    :param use_case: UserUpdatePartialUseCase instance (injected dependency).
+
+    Returns the updated user.
     """
     try:
         updated_user = await use_case.execute(user_id, data)
