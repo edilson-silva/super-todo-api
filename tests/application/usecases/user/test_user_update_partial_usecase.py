@@ -10,6 +10,7 @@ from src.application.usecases.user.user_update_partial_usecase import (
     UserUpdatePartialUseCase,
 )
 from src.domain.entities.user_role import UserRole
+from src.domain.exceptions.exceptions import NotFoundException
 from src.domain.repositories.user_repository import UserRepository
 from src.domain.security.password_hasher import PasswordHasher
 
@@ -149,3 +150,25 @@ class TestUserUpdatePartialUsecase:
         assert user_updated.avatar == user_update_partial_dto.avatar
         assert user_updated.role == user_created.role
         assert user_updated.created_at == user_created.created_at
+
+    async def test_invalid_id_should_raise_exception(
+        self,
+        fake_user_repository: UserRepository,
+        fake_password_hasher: PasswordHasher,
+    ):
+        user_update_partial_dto = UserUpdatePartialInputDTO(
+            name='Updated Name',
+            password='updated_pass',
+            role=UserRole.USER,
+            avatar='updated_avatar',
+        )
+        user_update_partial_usecase = UserUpdatePartialUseCase(
+            fake_user_repository, fake_password_hasher
+        )
+
+        with pytest.raises(NotFoundException) as exc:
+            await user_update_partial_usecase.execute(
+                'random-uuid', user_update_partial_dto
+            )
+
+        assert str(exc.value) == 'Not found'
