@@ -96,7 +96,7 @@ class TestAuthSigninController:
             ]
         }
 
-    async def test_valid_user_credentials_should_return_success_with_access_token(
+    async def test_valid_user_credentials_should_return_success_with_token(
         self,
         client: AsyncClient,
         signup_user_info: dict,
