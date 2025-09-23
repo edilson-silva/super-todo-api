@@ -1,11 +1,15 @@
 from dotenv import load_dotenv
 from pydantic import Field, field_validator
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 load_dotenv()
 
 
 class Settings(BaseSettings):
+    model_config = SettingsConfigDict(
+        env_file='.env', env_file_encoding='utf-8', case_sensitive=True
+    )
+
     DATABASE_URL: str = Field(..., env='DATABASE_URL')
     DEBUG: bool = Field(default=False, env='DEBUG')
     APP_NAME: str = Field(default='SuperTodo', env='APP_NAME')
@@ -14,10 +18,6 @@ class Settings(BaseSettings):
         default='HS256', env='ACCESS_TOKEN_ALGORITHM'
     )
     ACCESS_TOKEN_SECRET_KEY: str = Field(..., env='ACCESS_TOKEN_SECRET_KEY')
-
-    class Config:
-        env_file = '.env'
-        case_sensitive = True
 
     @field_validator('DATABASE_URL')
     @classmethod
