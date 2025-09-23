@@ -1,9 +1,10 @@
+from collections.abc import AsyncGenerator
 from datetime import datetime, timezone
 from typing import Generator, List
 
 import pytest
 from fastapi.testclient import TestClient
-from httpx import Client
+from httpx import ASGITransport, AsyncClient, Client
 
 from src.application.dtos.security.token_generator_decode_dto import (
     TokenGeneratorDecodeOutputDTO,
@@ -38,6 +39,7 @@ from src.domain.entities.user_entity import User, UserRole
 from src.domain.repositories.user_repository import UserRepository
 from src.domain.security.password_hasher import PasswordHasher
 from src.domain.security.token_generator import TokenGenerator
+from src.infrastructure.db.session import Base, engine
 from src.main import app
 
 
@@ -191,3 +193,21 @@ def client_with_mock_deps(
 
     # Cleanup overrides dependencies after test
     app.dependency_overrides.clear()
+
+
+@pytest.fixture
+async def client() -> AsyncGenerator[AsyncClient, None]:
+    # Create tables
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+
+    transport = ASGITransport(app=app)
+
+    async with AsyncClient(transport=transport, base_url='http://test') as ac:
+        yield ac
+
+    # Cleanup
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.drop_all)
+
+    await engine.dispose()
