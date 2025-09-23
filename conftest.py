@@ -1,38 +1,15 @@
 from collections.abc import AsyncGenerator
 from datetime import datetime, timezone
-from typing import Generator, List
+from typing import List
 
 import pytest
-from fastapi.testclient import TestClient
-from httpx import ASGITransport, AsyncClient, Client
+from httpx import ASGITransport, AsyncClient
 
 from src.application.dtos.security.token_generator_decode_dto import (
     TokenGeneratorDecodeOutputDTO,
 )
 from src.application.dtos.security.token_generator_encode_dto import (
     TokenGeneratorEncodeInputDTO,
-)
-from src.application.usecases.auth.auth_signin_usecase import AuthSigninUseCase
-from src.application.usecases.auth.auth_signup_usecase import AuthSignupUseCase
-from src.application.usecases.user.user_create_usecase import UserCreateUseCase
-from src.application.usecases.user.user_delete_usecase import UserDeleteUseCase
-from src.application.usecases.user.user_get_usecase import UserGetUseCase
-from src.application.usecases.user.user_list_usecase import UserListUseCase
-from src.application.usecases.user.user_update_partial_usecase import (
-    UserUpdatePartialUseCase,
-)
-from src.application.usecases.user.user_update_usecase import UserUpdateUseCase
-from src.core.container import (
-    get_auth_signin_use_case,
-    get_auth_signup_use_case,
-    get_password_hasher,
-    get_user_create_use_case,
-    get_user_delete_use_case,
-    get_user_get_use_case,
-    get_user_list_use_case,
-    get_user_repository,
-    get_user_update_partial_use_case,
-    get_user_update_use_case,
 )
 from src.core.settings import settings
 from src.domain.entities.user_entity import User, UserRole
@@ -131,68 +108,6 @@ def sample_user() -> User:
         role=UserRole.ADMIN,
     )
     return user
-
-
-@pytest.fixture
-def client_with_mock_deps(
-    fake_user_repository, fake_password_hasher, fake_token_generator
-) -> Generator[Client, None, None]:
-    def fake_auth_signup_use_case() -> AuthSignupUseCase:
-        return AuthSignupUseCase(fake_user_repository, fake_password_hasher)
-
-    def fake_auth_signin_use_case() -> AuthSigninUseCase:
-        return AuthSigninUseCase(
-            fake_user_repository, fake_password_hasher, fake_token_generator
-        )
-
-    def fake_user_create_use_case() -> UserCreateUseCase:
-        return UserCreateUseCase(fake_user_repository, fake_password_hasher)
-
-    def fake_user_get_use_case() -> UserGetUseCase:
-        return UserGetUseCase(fake_user_repository)
-
-    def fake_user_list_use_case() -> UserListUseCase:
-        return UserListUseCase(fake_user_repository)
-
-    def fake_user_delete_use_case() -> UserDeleteUseCase:
-        return UserDeleteUseCase(fake_user_repository)
-
-    def fake_user_update_use_case() -> UserUpdateUseCase:
-        return UserUpdateUseCase(fake_user_repository, fake_password_hasher)
-
-    def fake_user_update_partial_use_case() -> UserUpdatePartialUseCase:
-        return UserUpdatePartialUseCase(
-            fake_user_repository, fake_password_hasher
-        )
-
-    # Overide dependencies before test
-    app.dependency_overrides[get_user_repository] = fake_user_repository
-    app.dependency_overrides[get_password_hasher] = fake_password_hasher
-    app.dependency_overrides[get_auth_signup_use_case] = (
-        fake_auth_signup_use_case
-    )
-    app.dependency_overrides[get_auth_signin_use_case] = (
-        fake_auth_signin_use_case
-    )
-    app.dependency_overrides[get_user_create_use_case] = (
-        fake_user_create_use_case
-    )
-    app.dependency_overrides[get_user_get_use_case] = fake_user_get_use_case
-    app.dependency_overrides[get_user_list_use_case] = fake_user_list_use_case
-    app.dependency_overrides[get_user_delete_use_case] = (
-        fake_user_delete_use_case
-    )
-    app.dependency_overrides[get_user_update_use_case] = (
-        fake_user_update_use_case
-    )
-    app.dependency_overrides[get_user_update_partial_use_case] = (
-        fake_user_update_partial_use_case
-    )
-
-    yield TestClient(app)
-
-    # Cleanup overrides dependencies after test
-    app.dependency_overrides.clear()
 
 
 @pytest.fixture
