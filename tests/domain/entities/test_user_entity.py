@@ -1,4 +1,5 @@
 from datetime import datetime, timezone
+from uuid import UUID
 
 from src.domain.entities.user_entity import User, UserRole
 
@@ -18,7 +19,7 @@ class TestUserEntity:
         )
 
         assert user.id is not None
-        assert isinstance(user.id, str)
+        assert isinstance(user.id, UUID)
         assert user.name == user_name
         assert user.email == user_email
         assert user.password == user_password
