@@ -1,6 +1,6 @@
 import pytest
 from fastapi import status
-from httpx import Client
+from httpx import AsyncClient
 
 
 @pytest.fixture(scope='class')
@@ -21,10 +21,10 @@ def signin_user_info():
 
 
 class TestAuthSignupController:
-    def test_missing_request_params_should_return_unprocessable_error(
-        self, client_with_mock_deps: Client
+    async def test_missing_request_params_should_return_unprocessable_error(
+        self, client: AsyncClient
     ):
-        response = client_with_mock_deps.post('/auth/signup', json={})
+        response = await client.post('/auth/signup', json={})
 
         assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
         assert response.json() == {
@@ -50,39 +50,33 @@ class TestAuthSignupController:
             ]
         }
 
-    def test_signup_user_info_should_return_success(
-        self, client_with_mock_deps: Client, signup_user_info: dict
+    async def test_signup_user_info_should_return_success(
+        self, client: AsyncClient, signup_user_info: dict
     ):
-        response = client_with_mock_deps.post(
-            '/auth/signup', json=signup_user_info
-        )
+        response = await client.post('/auth/signup', json=signup_user_info)
 
         assert response.status_code == status.HTTP_201_CREATED
         assert response.text == 'null'
 
-    def test_existing_user_info_should_return_conflict_error(
-        self, client_with_mock_deps: Client, signup_user_info: dict
+    async def test_existing_user_info_should_return_conflict_error(
+        self, client: AsyncClient, signup_user_info: dict
     ):
-        response1 = client_with_mock_deps.post(
-            '/auth/signup', json=signup_user_info
-        )
+        response1 = await client.post('/auth/signup', json=signup_user_info)
 
         assert response1.status_code == status.HTTP_201_CREATED
         assert response1.text == 'null'
 
-        response2 = client_with_mock_deps.post(
-            '/auth/signup', json=signup_user_info
-        )
+        response2 = await client.post('/auth/signup', json=signup_user_info)
 
         assert response2.status_code == status.HTTP_409_CONFLICT
         assert response2.json() == {'detail': 'Conflict'}
 
 
 class TestAuthSigninController:
-    def test_missing_request_params_should_return_unprocessable_error(
-        self, client_with_mock_deps: Client
+    async def test_missing_request_params_should_return_unprocessable_error(
+        self, client: AsyncClient
     ):
-        response = client_with_mock_deps.post('/auth/signin', json={})
+        response = await client.post('/auth/signin', json={})
 
         assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
         assert response.json() == {
@@ -102,36 +96,36 @@ class TestAuthSigninController:
             ]
         }
 
-    def test_valid_user_credentials_should_return_success_with_access_token(
+    async def test_valid_user_credentials_should_return_success_with_access_token(
         self,
-        client_with_mock_deps: Client,
+        client: AsyncClient,
         signup_user_info: dict,
         signin_user_info: dict,
     ):
-        signup_response = client_with_mock_deps.post(
+        signup_response = await client.post(
             '/auth/signup', json=signup_user_info
         )
 
         assert signup_response.status_code == status.HTTP_201_CREATED
 
-        signin_response = client_with_mock_deps.post(
+        signin_response = await client.post(
             '/auth/signin', json=signin_user_info
         )
 
         assert signin_response.status_code == status.HTTP_200_OK
-        assert signin_response.json() == {
-            'access_token': 'Bearer fake_token',
-        }
 
-    def test_invalid_user_credentials_should_return_unauthorized_error(
+        access_token = signin_response.json().get('access_token')
+
+        assert isinstance(access_token, str)
+        assert access_token.startswith('Bearer ey')
+
+    async def test_invalid_user_credentials_should_return_unauthorized_error(
         self,
-        client_with_mock_deps: Client,
+        client: AsyncClient,
         signup_user_info: dict,
         signin_user_info: dict,
     ):
-        response = client_with_mock_deps.post(
-            '/auth/signin', json=signin_user_info
-        )
+        response = await client.post('/auth/signin', json=signin_user_info)
 
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
         assert response.json() == {'detail': 'Unauthorized'}
