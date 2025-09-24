@@ -5,16 +5,6 @@ from httpx import AsyncClient
 from src.domain.entities.user_role import UserRole
 
 
-@pytest.fixture(scope='class')
-def create_user_info():
-    return {
-        'name': 'Test User',
-        'email': 'test@example.com',
-        'password': '123456789',
-        'role': UserRole.USER,
-    }
-
-
 @pytest.mark.asyncio
 class TestUserCreateController:
     async def test_missing_request_params_should_return_unprocessable_error(
@@ -47,9 +37,9 @@ class TestUserCreateController:
         }
 
     async def test_create_user_info_should_return_success(
-        self, client: AsyncClient, create_user_info: dict
+        self, client: AsyncClient, sample_user_info: dict
     ):
-        response = await client.post('/users', json=create_user_info)
+        response = await client.post('/users', json=sample_user_info)
 
         assert response.status_code == status.HTTP_201_CREATED
 
@@ -59,14 +49,14 @@ class TestUserCreateController:
         assert created_user['id'] != ''
         assert created_user['name'] == 'Test User'
         assert created_user['email'] == 'test@example.com'
-        assert created_user['role'] == 'user'
+        assert created_user['role'] == 'admin'
         assert created_user['avatar'] == ''
         # assert created_user['created_at'] == '2025-01-01T00:00:00Z'
 
     async def test_existing_user_info_should_return_bad_request_error(
-        self, client: AsyncClient, create_user_info: dict
+        self, client: AsyncClient, sample_user_info: dict
     ):
-        response1 = await client.post('/users', json=create_user_info)
+        response1 = await client.post('/users', json=sample_user_info)
 
         assert response1.status_code == status.HTTP_201_CREATED
 
@@ -76,10 +66,10 @@ class TestUserCreateController:
         assert created_user['id'] != ''
         assert created_user['name'] == 'Test User'
         assert created_user['email'] == 'test@example.com'
-        assert created_user['role'] == 'user'
+        assert created_user['role'] == 'admin'
         assert created_user['avatar'] == ''
 
-        response2 = await client.post('/users', json=create_user_info)
+        response2 = await client.post('/users', json=sample_user_info)
 
         assert response2.status_code == status.HTTP_400_BAD_REQUEST
         assert response2.json() == {'detail': 'Bad Request'}
@@ -87,10 +77,10 @@ class TestUserCreateController:
 
 class TestUserGetController:
     async def test_valid_id_should_return_success(
-        self, client: AsyncClient, create_user_info: dict
+        self, client: AsyncClient, sample_user_info: dict
     ):
         user_create_response = await client.post(
-            '/users', json=create_user_info
+            '/users', json=sample_user_info
         )
 
         assert user_create_response.status_code == status.HTTP_201_CREATED
@@ -111,7 +101,7 @@ class TestUserGetController:
         assert user_found['created_at'] == user_created['created_at']
 
     async def test_invalid_id_should_return_not_found_error(
-        self, client: AsyncClient, create_user_info: dict
+        self, client: AsyncClient, sample_user_info: dict
     ):
         response = await client.get('/users/invalid-id')
 
@@ -121,10 +111,10 @@ class TestUserGetController:
 
 class TestUserListController:
     async def test_should_return_success(
-        self, client: AsyncClient, create_user_info: dict
+        self, client: AsyncClient, sample_user_info: dict
     ):
         user_create_response = await client.post(
-            '/users', json=create_user_info
+            '/users', json=sample_user_info
         )
 
         assert user_create_response.status_code == status.HTTP_201_CREATED
@@ -152,10 +142,10 @@ class TestUserListController:
 
 class TestUserDeleteController:
     async def test_valid_id_should_return_success(
-        self, client: AsyncClient, create_user_info: dict
+        self, client: AsyncClient, sample_user_info: dict
     ):
         user_create_response = await client.post(
-            '/users', json=create_user_info
+            '/users', json=sample_user_info
         )
 
         assert user_create_response.status_code == status.HTTP_201_CREATED
@@ -169,7 +159,7 @@ class TestUserDeleteController:
         assert user_delete_response.status_code == status.HTTP_204_NO_CONTENT
 
     async def test_invalid_id_should_return_not_found_error(
-        self, client: AsyncClient, create_user_info: dict
+        self, client: AsyncClient, sample_user_info: dict
     ):
         response = await client.delete('/users/invalid-id')
 
@@ -214,10 +204,10 @@ class TestUserUpdateController:
         }
 
     async def test_valid_id_should_return_success(
-        self, client: AsyncClient, create_user_info: dict
+        self, client: AsyncClient, sample_user_info: dict
     ):
         user_create_response = await client.post(
-            '/users', json=create_user_info
+            '/users', json=sample_user_info
         )
 
         assert user_create_response.status_code == status.HTTP_201_CREATED
@@ -247,7 +237,7 @@ class TestUserUpdateController:
         assert user_updated['created_at'] == user_created['created_at']
 
     async def test_invalid_id_should_return_not_found_error(
-        self, client: AsyncClient, create_user_info: dict
+        self, client: AsyncClient, sample_user_info: dict
     ):
         response = await client.put(
             '/users/invalid-id',
@@ -265,10 +255,10 @@ class TestUserUpdateController:
 
 class TestUserUpdatePartialController:
     async def test_valid_id_and_empty_request_params_should_return_success(
-        self, client: AsyncClient, create_user_info: dict
+        self, client: AsyncClient, sample_user_info: dict
     ):
         user_create_response = await client.post(
-            '/users', json=create_user_info
+            '/users', json=sample_user_info
         )
 
         assert user_create_response.status_code == status.HTTP_201_CREATED
@@ -293,10 +283,10 @@ class TestUserUpdatePartialController:
         assert user_updated['created_at'] == user_created['created_at']
 
     async def test_valid_id_and_request_params_should_return_success(
-        self, client: AsyncClient, create_user_info: dict
+        self, client: AsyncClient, sample_user_info: dict
     ):
         user_create_response = await client.post(
-            '/users', json=create_user_info
+            '/users', json=sample_user_info
         )
 
         assert user_create_response.status_code == status.HTTP_201_CREATED
@@ -326,7 +316,7 @@ class TestUserUpdatePartialController:
         assert user_updated['created_at'] == user_created['created_at']
 
     async def test_invalid_id_should_return_not_found_error(
-        self, client: AsyncClient, create_user_info: dict
+        self, client: AsyncClient, sample_user_info: dict
     ):
         response = await client.patch(
             '/users/invalid-id',

@@ -1,5 +1,5 @@
+import datetime
 from collections.abc import AsyncGenerator
-from datetime import datetime, timezone
 from typing import List
 
 import pytest
@@ -28,8 +28,8 @@ def fake_user_repository() -> UserRepository:
 
         async def create(self, user: User) -> User:
             user.id = str(len(self.users) + 1)
-            user.created_at = datetime(
-                2025, 1, 1, 0, 0, 0, tzinfo=timezone.utc
+            user.created_at = datetime.datetime(
+                2025, 1, 1, 0, 0, 0, tzinfo=datetime.timezone.utc
             )
             self.users.append(user)
             return user
@@ -100,14 +100,13 @@ def fake_token_generator() -> TokenGenerator:
 
 
 @pytest.fixture
-def sample_user() -> User:
-    user = User(
-        name='Test User',
-        email='test@example.com',
-        password='123456789',
-        role=UserRole.ADMIN,
-    )
-    return user
+def sample_user_info() -> dict:
+    return {
+        'name': 'Test User',
+        'email': 'test@example.com',
+        'password': '123456789',
+        'role': UserRole.ADMIN,
+    }
 
 
 @pytest.fixture
