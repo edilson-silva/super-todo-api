@@ -6,6 +6,7 @@ readme = "README.md"
 requires-python = ">=3.11,<4.0"
 dependencies = [
     "aiobcrypt>=3.2.0.post1",
+    "alembic>=1.16.5",
     "asyncpg>=0.30.0",
     "fastapi[standard]>=0.116.1",
     "pydantic-settings>=2.10.1",
