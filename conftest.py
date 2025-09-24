@@ -1,5 +1,5 @@
-import datetime
 from collections.abc import AsyncGenerator
+from datetime import datetime, timezone
 from typing import List
 
 import pytest
@@ -28,8 +28,8 @@ def fake_user_repository() -> UserRepository:
 
         async def create(self, user: User) -> User:
             user.id = str(len(self.users) + 1)
-            user.created_at = datetime.datetime(
-                2025, 1, 1, 0, 0, 0, tzinfo=datetime.timezone.utc
+            user.created_at = datetime(
+                2025, 1, 1, 0, 0, 0, tzinfo=timezone.utc
             )
             self.users.append(user)
             return user
@@ -127,3 +127,11 @@ async def client() -> AsyncGenerator[AsyncClient, None]:
         await conn.run_sync(Base.metadata.drop_all)
 
     await engine.dispose()
+
+
+@pytest.fixture
+def datetime_to_web_iso():
+    def convert_date(date: datetime) -> str:
+        return date.isoformat().replace('+00:00', 'Z')
+
+    return convert_date

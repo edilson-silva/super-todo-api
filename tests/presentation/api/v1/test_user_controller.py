@@ -1,5 +1,8 @@
+from datetime import datetime, timezone
+
 import pytest
 from fastapi import status
+from freezegun import freeze_time
 from httpx import AsyncClient
 
 from src.domain.entities.user_role import UserRole
@@ -7,6 +10,17 @@ from src.domain.entities.user_role import UserRole
 
 @pytest.mark.asyncio
 class TestUserCreateController:
+    create_datetime = datetime(
+        2025,
+        1,
+        1,
+        0,
+        0,
+        0,
+        0,
+        timezone.utc,
+    )
+
     async def test_missing_request_params_should_return_unprocessable_error(
         self, client: AsyncClient
     ):
@@ -36,8 +50,12 @@ class TestUserCreateController:
             ]
         }
 
+    @freeze_time(create_datetime.isoformat())
     async def test_create_user_info_should_return_success(
-        self, client: AsyncClient, sample_user_info: dict
+        self,
+        client: AsyncClient,
+        sample_user_info: dict,
+        datetime_to_web_iso,
     ):
         response = await client.post('/users', json=sample_user_info)
 
@@ -51,7 +69,9 @@ class TestUserCreateController:
         assert created_user['email'] == 'test@example.com'
         assert created_user['role'] == 'admin'
         assert created_user['avatar'] == ''
-        # assert created_user['created_at'] == '2025-01-01T00:00:00Z'
+        assert created_user['created_at'] == datetime_to_web_iso(
+            self.create_datetime
+        )
 
     async def test_existing_user_info_should_return_bad_request_error(
         self, client: AsyncClient, sample_user_info: dict
