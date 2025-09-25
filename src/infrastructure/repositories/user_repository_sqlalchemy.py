@@ -1,5 +1,6 @@
 from collections.abc import AsyncGenerator
 from typing import List
+from uuid import UUID
 
 from sqlalchemy import delete, select, update
 from sqlalchemy.exc import IntegrityError
@@ -72,7 +73,7 @@ class UserRepositorySQLAlchemy(UserRepository):
 
         :return: The user if found and None otherwise.
         """
-        query = select(UserModel).filter(UserModel.id == user_id)
+        query = select(UserModel).filter(UserModel.id == UUID(user_id))
         query = await self.session.execute(query)
         result = query.scalar_one_or_none()
 
