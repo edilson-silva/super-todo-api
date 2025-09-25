@@ -4,6 +4,8 @@ from typing import List
 
 import pytest
 from httpx import ASGITransport, AsyncClient
+from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
+from sqlalchemy.orm import sessionmaker
 
 from src.application.dtos.security.token_generator_decode_dto import (
     TokenGeneratorDecodeOutputDTO,
@@ -16,7 +18,7 @@ from src.domain.entities.user_entity import User, UserRole
 from src.domain.repositories.user_repository import UserRepository
 from src.domain.security.password_hasher import PasswordHasher
 from src.domain.security.token_generator import TokenGenerator
-from src.infrastructure.db.session import Base, engine
+from src.infrastructure.db.session import Base, get_db
 from src.main import app
 
 
@@ -110,10 +112,33 @@ def sample_user_info() -> dict:
 
 
 @pytest.fixture
-async def client() -> AsyncGenerator[AsyncClient, None]:
+async def get_db_session() -> AsyncGenerator[AsyncSession, None]:
+    engine = create_async_engine('sqlite+aiosqlite:///:memory:')
+
+    AsyncSesssionLocal = sessionmaker(
+        bind=engine, class_=AsyncSession, expire_on_commit=False
+    )
+
     # Create tables
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
+
+    async with AsyncSesssionLocal() as session:
+        yield session
+
+    # Cleanup
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.drop_all)
+
+    await engine.dispose()
+
+
+@pytest.fixture
+async def client(get_db_session) -> AsyncGenerator[AsyncClient, None]:
+    def override_get_db_session():
+        yield get_db_session
+
+    app.dependency_overrides[get_db] = override_get_db_session
 
     transport = ASGITransport(app=app)
 
@@ -122,11 +147,7 @@ async def client() -> AsyncGenerator[AsyncClient, None]:
     ) as ac:
         yield ac
 
-    # Cleanup
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.drop_all)
-
-    await engine.dispose()
+    app.dependency_overrides.clear()
 
 
 @pytest.fixture
