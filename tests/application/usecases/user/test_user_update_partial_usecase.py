@@ -45,8 +45,6 @@ class TestUserUpdatePartialUsecase:
             user_created.id, user_update_partial_dto
         )
 
-        print(user_created)
-
         assert isinstance(user_updated, UserUpdatePartialOutputDTO)
         assert user_updated.id == user_created.id
         assert user_updated.name == user_update_partial_dto.name
