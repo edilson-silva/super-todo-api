@@ -50,8 +50,8 @@ class UserRepositorySQLAlchemy(UserRepository):
 
         :return: The user if found and None otherwise.
         """
-        query = select(UserModel).filter(UserModel.email == email)
-        query = await self.session.execute(query)
+        stmt = select(UserModel).filter(UserModel.email == email)
+        query = await self.session.execute(stmt)
         result = query.scalar_one_or_none()
 
         if result:
@@ -73,8 +73,8 @@ class UserRepositorySQLAlchemy(UserRepository):
 
         :return: The user if found and None otherwise.
         """
-        query = select(UserModel).filter(UserModel.id == UUID(user_id))
-        query = await self.session.execute(query)
+        stmt = select(UserModel).filter(UserModel.id == UUID(user_id))
+        query = await self.session.execute(stmt)
         result = query.scalar_one_or_none()
 
         if result:
@@ -96,8 +96,8 @@ class UserRepositorySQLAlchemy(UserRepository):
 
         :return: The user if found and None otherwise.
         """
-        query = select(UserModel)
-        query = await self.session.execute(query)
+        stmt = select(UserModel)
+        query = await self.session.execute(stmt)
         result = query.scalars()
 
         users: List[User] = []
@@ -125,8 +125,8 @@ class UserRepositorySQLAlchemy(UserRepository):
 
         :return: None.
         """
-        query = delete(UserModel).filter(UserModel.id == UUID(user_id))
-        await self.session.execute(query)
+        stmt = delete(UserModel).filter(UserModel.id == UUID(user_id))
+        await self.session.execute(stmt)
         await self.session.commit()
 
     async def update(self, user: User) -> User:
