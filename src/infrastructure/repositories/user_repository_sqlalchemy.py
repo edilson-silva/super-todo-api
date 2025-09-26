@@ -139,7 +139,7 @@ class UserRepositorySQLAlchemy(UserRepository):
         """
         stmt = (
             update(UserModel)
-            .where(UserModel.id == user.id)
+            .where(UserModel.id == UUID(str(user.id)))
             .values(
                 name=user.name,
                 password=user.password,
