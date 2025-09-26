@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, HTTPException, Query, status
 
 from src.application.dtos.user.user_create_dto import (
     UserCreateInputDTO,
@@ -87,14 +87,18 @@ async def user_get(
     status_code=status.HTTP_200_OK,
 )
 async def user_list(
+    limit: int = Query(10, ge=1, le=100),
+    offset: int = Query(0),
     use_case: UserListUseCase = UserListUseCaseDep,
 ):
     """
     Get the list of users.
 
+    :param limit: Maximum number of users returned.
+    :param offset: Number of users ignored in the search.
     :return: List of users.
     """
-    users = await use_case.execute()
+    users = await use_case.execute(limit, offset)
     return users
 
 

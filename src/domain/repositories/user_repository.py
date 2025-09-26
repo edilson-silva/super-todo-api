@@ -39,11 +39,12 @@ class UserRepository(ABC):
         pass
 
     @abstractmethod
-    async def find_all(self) -> List[User]:
+    async def find_all(self, limit: int, offset: int) -> List[User]:
         """
         Find all users.
 
-        :param user_id: Serch id.
+        :param limit: Maximum number of users returned.
+        :param offset: Number of users ignored in the search.
 
         :return: The user if found and None otherwise.
         """

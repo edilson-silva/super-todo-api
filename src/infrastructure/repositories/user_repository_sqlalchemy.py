@@ -88,15 +88,16 @@ class UserRepositorySQLAlchemy(UserRepository):
                 created_at=result.created_at,
             )
 
-    async def find_all(self) -> List[User]:
+    async def find_all(self, limit: int, offset: int) -> List[User]:
         """
         Find all users.
 
-        :param user_id: Serch id.
+        :param limit: Maximum number of users returned.
+        :param offset: Number of users ignored in the search.
 
         :return: The user if found and None otherwise.
         """
-        stmt = select(UserModel)
+        stmt = select(UserModel).limit(limit).offset(offset)
         query = await self.session.execute(stmt)
         result = query.scalars()
 
