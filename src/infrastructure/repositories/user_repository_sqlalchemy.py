@@ -125,7 +125,7 @@ class UserRepositorySQLAlchemy(UserRepository):
 
         :return: None.
         """
-        query = delete(UserModel).filter(UserModel.id == user_id)
+        query = delete(UserModel).filter(UserModel.id == UUID(user_id))
         await self.session.execute(query)
         await self.session.commit()
 
