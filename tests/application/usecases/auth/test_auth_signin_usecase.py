@@ -19,9 +19,9 @@ from src.domain.security.token_generator import TokenGenerator
 class TestAuthSigninUsecase:
     async def test_valid_credentials_should_return_access_token(
         self,
-        fake_user_repository: UserRepository,
-        fake_password_hasher: PasswordHasher,
-        fake_token_generator: TokenGenerator,
+        user_repository: UserRepository,
+        password_hasher: PasswordHasher,
+        token_generator: TokenGenerator,
     ):
         name = 'test'
         email = 'test@example.com'
@@ -32,9 +32,7 @@ class TestAuthSigninUsecase:
             email=email,
             password=password,
         )
-        signup_usecase = AuthSignupUseCase(
-            fake_user_repository, fake_password_hasher
-        )
+        signup_usecase = AuthSignupUseCase(user_repository, password_hasher)
         await signup_usecase.execute(data=signup_dto)
 
         signin_dto = AuthSigninInputDTO(
@@ -42,21 +40,23 @@ class TestAuthSigninUsecase:
             password=password,
         )
         signin_usecase = AuthSigninUseCase(
-            fake_user_repository, fake_password_hasher, fake_token_generator
+            user_repository, password_hasher, token_generator
         )
 
         response = await signin_usecase.execute(signin_dto)
 
         assert isinstance(response, AuthSigninOutputDTO)
-        assert (
-            response.access_token == f'{settings.ACCESS_TOKEN_TYPE} fake_token'
-        )
+
+        token_type, token_value = response.access_token.split()
+
+        assert token_type == settings.ACCESS_TOKEN_TYPE
+        assert token_type != ''
 
     async def test_invalid_credentials_should_raise_exception(
         self,
-        fake_user_repository: UserRepository,
-        fake_password_hasher: PasswordHasher,
-        fake_token_generator: TokenGenerator,
+        user_repository: UserRepository,
+        password_hasher: PasswordHasher,
+        token_generator: TokenGenerator,
     ):
         name = 'test'
         email = 'test@example.com'
@@ -68,9 +68,7 @@ class TestAuthSigninUsecase:
             email=email,
             password=signup_password,
         )
-        signup_usecase = AuthSignupUseCase(
-            fake_user_repository, fake_password_hasher
-        )
+        signup_usecase = AuthSignupUseCase(user_repository, password_hasher)
         await signup_usecase.execute(data=signup_dto)
 
         signin_dto = AuthSigninInputDTO(
@@ -78,7 +76,7 @@ class TestAuthSigninUsecase:
             password=signin_password,
         )
         signin_usecase = AuthSigninUseCase(
-            fake_user_repository, fake_password_hasher, fake_token_generator
+            user_repository, password_hasher, token_generator
         )
 
         with pytest.raises(InvalidCredentialsException) as exc:
@@ -88,9 +86,9 @@ class TestAuthSigninUsecase:
 
     async def test_non_existing_user_should_raise_exception(
         self,
-        fake_user_repository: UserRepository,
-        fake_password_hasher: PasswordHasher,
-        fake_token_generator: TokenGenerator,
+        user_repository: UserRepository,
+        password_hasher: PasswordHasher,
+        token_generator: TokenGenerator,
     ):
         email = 'test@example.com'
         password = '123456789'
@@ -100,7 +98,7 @@ class TestAuthSigninUsecase:
             password=password,
         )
         signin_usecase = AuthSigninUseCase(
-            fake_user_repository, fake_password_hasher, fake_token_generator
+            user_repository, password_hasher, token_generator
         )
 
         with pytest.raises(NotFoundException) as exc:

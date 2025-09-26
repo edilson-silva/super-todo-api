@@ -19,6 +19,15 @@ from src.domain.repositories.user_repository import UserRepository
 from src.domain.security.password_hasher import PasswordHasher
 from src.domain.security.token_generator import TokenGenerator
 from src.infrastructure.db.session import Base, get_db
+from src.infrastructure.repositories.user_repository_sqlalchemy import (
+    UserRepositorySQLAlchemy,
+)
+from src.infrastructure.security.password_hasher_bcrypt import (
+    PasswordHasherBcrypt,
+)
+from src.infrastructure.security.token_generator_pyjwt import (
+    TokenGeneratorPyJWT,
+)
 from src.main import app
 
 
@@ -46,7 +55,15 @@ def fake_user_repository() -> UserRepository:
                 if user.id == user_id:
                     return user
 
-        async def find_all(self) -> List[User]:
+        async def find_all(self, limit: int, offset: int) -> List[User]:
+            """
+            Find all users.
+
+            :param limit: Maximum number of users returned.
+            :param offset: Number of users ignored in the search.
+
+            :return: The user if found and None otherwise.
+            """
             return self.users
 
         async def delete_by_id(self, user_id: str) -> None:
@@ -81,27 +98,6 @@ def fake_password_hasher() -> PasswordHasher:
 
 
 @pytest.fixture
-def fake_token_generator() -> TokenGenerator:
-    class FakeTokenGenerator(TokenGenerator):
-        def __init__(self):
-            self.token_type = settings.ACCESS_TOKEN_TYPE
-
-        async def async_encode(
-            self, payload: TokenGeneratorEncodeInputDTO
-        ) -> str:
-            return f'{self.token_type} fake_token'
-
-        async def async_decode(
-            self, access_token: str
-        ) -> TokenGeneratorDecodeOutputDTO:
-            return TokenGeneratorDecodeOutputDTO(
-                user_id='1', user_role=UserRole.ADMIN
-            )
-
-    return FakeTokenGenerator()
-
-
-@pytest.fixture
 def sample_user_info() -> dict:
     return {
         'name': 'Test User',
@@ -109,6 +105,11 @@ def sample_user_info() -> dict:
         'password': '123456789',
         'role': UserRole.ADMIN,
     }
+
+
+@pytest.fixture
+def password_hasher() -> PasswordHasher:
+    return PasswordHasherBcrypt()
 
 
 @pytest.fixture
@@ -131,6 +132,39 @@ async def get_db_session() -> AsyncGenerator[AsyncSession, None]:
         await conn.run_sync(Base.metadata.drop_all)
 
     await engine.dispose()
+
+
+@pytest.fixture
+async def user_repository(
+    get_db_session,
+) -> UserRepository:
+    return UserRepositorySQLAlchemy(get_db_session)
+
+
+@pytest.fixture
+def token_generator() -> TokenGenerator:
+    return TokenGeneratorPyJWT()
+
+
+@pytest.fixture
+def fake_token_generator() -> TokenGenerator:
+    class FakeTokenGenerator(TokenGenerator):
+        def __init__(self):
+            self.token_type = settings.ACCESS_TOKEN_TYPE
+
+        async def async_encode(
+            self, payload: TokenGeneratorEncodeInputDTO
+        ) -> str:
+            return f'{self.token_type} fake_token'
+
+        async def async_decode(
+            self, access_token: str
+        ) -> TokenGeneratorDecodeOutputDTO:
+            return TokenGeneratorDecodeOutputDTO(
+                user_id='1', user_role=UserRole.ADMIN
+            )
+
+    return FakeTokenGenerator()
 
 
 @pytest.fixture
