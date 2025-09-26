@@ -7,20 +7,20 @@ from httpx import AsyncClient
 
 from src.domain.entities.user_role import UserRole
 
+mock_datetime = datetime(
+    2025,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0,
+    timezone.utc,
+)
+
 
 @pytest.mark.asyncio
 class TestUserCreateController:
-    create_datetime = datetime(
-        2025,
-        1,
-        1,
-        0,
-        0,
-        0,
-        0,
-        timezone.utc,
-    )
-
     async def test_missing_request_params_should_return_unprocessable_error(
         self, client: AsyncClient
     ):
@@ -50,7 +50,7 @@ class TestUserCreateController:
             ]
         }
 
-    @freeze_time(create_datetime.isoformat())
+    @freeze_time(mock_datetime.isoformat())
     async def test_create_user_info_should_return_success(
         self,
         client: AsyncClient,
@@ -69,9 +69,7 @@ class TestUserCreateController:
         assert created_user['email'] == 'test@example.com'
         assert created_user['role'] == 'admin'
         assert created_user['avatar'] == ''
-        assert created_user['created_at'] == datetime_to_web_iso(
-            self.create_datetime
-        )
+        assert created_user['created_at'] == datetime_to_web_iso(mock_datetime)
 
     async def test_existing_user_info_should_return_bad_request_error(
         self, client: AsyncClient, sample_user_info: dict
@@ -96,8 +94,9 @@ class TestUserCreateController:
 
 
 class TestUserGetController:
+    @freeze_time(mock_datetime.isoformat())
     async def test_valid_id_should_return_success(
-        self, client: AsyncClient, sample_user_info: dict
+        self, client: AsyncClient, sample_user_info: dict, datetime_to_web_iso
     ):
         user_create_response = await client.post(
             '/users', json=sample_user_info
@@ -118,7 +117,7 @@ class TestUserGetController:
         assert user_found['email'] == user_created['email']
         assert user_found['role'] == user_created['role']
         assert user_found['avatar'] == user_created['avatar']
-        assert user_found['created_at'] == user_created['created_at']
+        assert user_found['created_at'] == datetime_to_web_iso(mock_datetime)
 
     async def test_invalid_id_should_return_not_found_error(
         self, client: AsyncClient, sample_user_info: dict
@@ -130,8 +129,9 @@ class TestUserGetController:
 
 
 class TestUserListController:
+    @freeze_time(mock_datetime.isoformat())
     async def test_should_return_success(
-        self, client: AsyncClient, sample_user_info: dict
+        self, client: AsyncClient, sample_user_info: dict, datetime_to_web_iso
     ):
         user_create_response = await client.post(
             '/users', json=sample_user_info
@@ -158,6 +158,7 @@ class TestUserListController:
         assert user['role'] == user_created['role']
         assert user['avatar'] == user_created['avatar']
         assert user['created_at'] == user_created['created_at']
+        assert user['created_at'] == datetime_to_web_iso(mock_datetime)
 
 
 class TestUserDeleteController:
