@@ -11,11 +11,12 @@ class BaseDTO(BaseModel):
 
     @classmethod
     def model_validate(cls, obj):
-        # Convert all UUID properties to strings
         for attr, value in vars(obj).items():
+            # Convert all UUID properties to strings
             if isinstance(value, UUID):
                 setattr(obj, attr, str(value))
 
+            # Set all datetime properties timezone to utc
             if isinstance(value, datetime):
                 if value.tzinfo is None:
                     setattr(obj, attr, value.replace(tzinfo=timezone.utc))
