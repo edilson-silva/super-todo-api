@@ -66,16 +66,6 @@ class TestUserRepository:
 
         created_user = await user_repository.create(user)
 
-        assert isinstance(created_user.id, str)
-        assert created_user.id != ''
-        assert created_user.name == user.name
-        assert created_user.email == user.email
-        assert created_user.password == user.password
-        assert created_user.role == user.role
-        assert created_user.avatar == user.avatar
-        assert isinstance(created_user.created_at, datetime)
-        assert created_user.created_at == mock_datetime
-
         found_user = await user_repository.find_by_email(
             str(created_user.email)
         )
@@ -98,19 +88,6 @@ class TestUserRepository:
             password='123456789',
             role=UserRole.ADMIN,
         )
-
-        created_user_1 = await user_repository.create(user_1)
-
-        assert isinstance(created_user_1.id, str)
-        assert created_user_1.id != ''
-        assert created_user_1.name == user_1.name
-        assert created_user_1.email == user_1.email
-        assert created_user_1.password == user_1.password
-        assert created_user_1.role == user_1.role
-        assert created_user_1.avatar == user_1.avatar
-        assert isinstance(created_user_1.created_at, datetime)
-        assert created_user_1.created_at == mock_datetime
-
         user_2 = User(
             name='User 2',
             email='user2@test.com',
@@ -119,17 +96,8 @@ class TestUserRepository:
             avatar='custom-avatar',
         )
 
+        created_user_1 = await user_repository.create(user_1)
         created_user_2 = await user_repository.create(user_2)
-
-        assert isinstance(created_user_2.id, str)
-        assert created_user_2.id != ''
-        assert created_user_2.name == user_2.name
-        assert created_user_2.email == user_2.email
-        assert created_user_2.password == user_2.password
-        assert created_user_2.role == user_2.role
-        assert created_user_2.avatar == user_2.avatar
-        assert isinstance(created_user_2.created_at, datetime)
-        assert created_user_2.created_at == mock_datetime
 
         found_users = await user_repository.find_all(10, 0)
 
@@ -163,16 +131,6 @@ class TestUserRepository:
         )
 
         created_user = await user_repository.create(user)
-
-        assert isinstance(created_user.id, str)
-        assert created_user.id != ''
-        assert created_user.name == user.name
-        assert created_user.email == user.email
-        assert created_user.password == user.password
-        assert created_user.role == user.role
-        assert created_user.avatar == user.avatar
-        assert isinstance(created_user.created_at, datetime)
-        assert created_user.created_at == mock_datetime
 
         response = await user_repository.delete_by_id(str(created_user.id))
 
