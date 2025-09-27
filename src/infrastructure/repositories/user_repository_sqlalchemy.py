@@ -153,4 +153,6 @@ class UserRepositorySQLAlchemy(UserRepository):
         await self.session.execute(stmt)
         await self.session.commit()
 
+        user.id = str(user.id)
+
         return user
