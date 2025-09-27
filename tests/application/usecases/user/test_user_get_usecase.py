@@ -13,8 +13,8 @@ from src.domain.security.password_hasher import PasswordHasher
 class TestUserGetUsecase:
     async def test_valid_id_should_return_found_user(
         self,
-        fake_user_repository: UserRepository,
-        fake_password_hasher: PasswordHasher,
+        user_repository: UserRepository,
+        password_hasher: PasswordHasher,
     ):
         user_create_dto = UserCreateInputDTO(
             name='Test User',
@@ -22,12 +22,12 @@ class TestUserGetUsecase:
             password='123456789',
         )
         user_create_usecase = UserCreateUseCase(
-            fake_user_repository, fake_password_hasher
+            user_repository, password_hasher
         )
 
         user_created = await user_create_usecase.execute(user_create_dto)
 
-        user_get_usecase = UserGetUseCase(fake_user_repository)
+        user_get_usecase = UserGetUseCase(user_repository)
 
         user_found = await user_get_usecase.execute(user_created.id)
 
@@ -40,10 +40,10 @@ class TestUserGetUsecase:
 
     async def test_invalid_id_should_raise_exception(
         self,
-        fake_user_repository: UserRepository,
-        fake_password_hasher: PasswordHasher,
+        user_repository: UserRepository,
+        password_hasher: PasswordHasher,
     ):
-        user_get_usecase = UserGetUseCase(fake_user_repository)
+        user_get_usecase = UserGetUseCase(user_repository)
 
         with pytest.raises(NotFoundException) as exc:
             await user_get_usecase.execute(uuid7str())
