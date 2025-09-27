@@ -38,6 +38,8 @@ class UserRepositorySQLAlchemy(UserRepository):
             await self.session.commit()
             await self.session.refresh(user_model)
 
+            user.id = str(user.id)
+
             return user
         except IntegrityError:
             raise UserAlreadyExistsException()
