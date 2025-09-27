@@ -14,46 +14,42 @@ from src.domain.security.password_hasher import PasswordHasher
 class TestAuthSignupUsecase:
     async def test_new_user_info_should_return_created_user(
         self,
-        fake_user_repository: UserRepository,
-        fake_password_hasher: PasswordHasher,
+        user_repository: UserRepository,
+        password_hasher: PasswordHasher,
     ):
         signup_dto = AuthSignupInputDTO(
             name='Test User',
             email='test@example.com',
             password='123456789',
         )
-        signup_usecase = AuthSignupUseCase(
-            fake_user_repository, fake_password_hasher
-        )
+        signup_usecase = AuthSignupUseCase(user_repository, password_hasher)
 
         response = await signup_usecase.execute(signup_dto)
 
         assert response is None
 
-        user = await fake_user_repository.find_by_email(signup_dto.email)
+        user = await user_repository.find_by_email(signup_dto.email)
 
         assert user is not None
         assert isinstance(user.id, str)
         assert user.id != ''
         assert user.name == signup_dto.name
         assert user.email == signup_dto.email
-        assert user.password == f'hashed_{signup_dto.password}'
+        assert user.password != ''
         assert user.role == UserRole.ADMIN
         assert isinstance(user.created_at, datetime)
 
     async def test_existing_user_should_raise_exception(
         self,
-        fake_user_repository: UserRepository,
-        fake_password_hasher: PasswordHasher,
+        user_repository: UserRepository,
+        password_hasher: PasswordHasher,
     ):
         signup_dto = AuthSignupInputDTO(
             name='Test User',
             email='test@example.com',
             password='123456789',
         )
-        signup_usecase = AuthSignupUseCase(
-            fake_user_repository, fake_password_hasher
-        )
+        signup_usecase = AuthSignupUseCase(user_repository, password_hasher)
         await signup_usecase.execute(signup_dto)
 
         with pytest.raises(UserAlreadyExistsException) as exc:
