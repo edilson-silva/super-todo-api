@@ -1,55 +1,48 @@
 from datetime import datetime, timezone
+from uuid import UUID
 
 import pytest
+from freezegun import freeze_time
 
 from src.domain.entities.user_entity import User, UserRole
 from src.domain.repositories.user_repository import UserRepository
 
+mock_datetime = datetime(
+    2025,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0,
+    timezone.utc,
+)
+
 
 @pytest.mark.asyncio
 class TestUserRepository:
-    async def test_should_create_two_users(
-        self, fake_user_repository: UserRepository
+    @freeze_time(mock_datetime)
+    async def test_should_create_an_user(
+        self, user_repository: UserRepository
     ):
-        user_1 = User(
+        user = User(
             name='User 1',
             email='user1@test.com',
             password='123456789',
             role=UserRole.ADMIN,
         )
 
-        created_user_1 = await fake_user_repository.create(user_1)
+        created_user = await user_repository.create(user)
 
-        assert isinstance(created_user_1.id, str)
-        assert created_user_1.id == '1'
-        assert created_user_1.name == user_1.name
-        assert created_user_1.email == user_1.email
-        assert created_user_1.password == user_1.password
-        assert created_user_1.role == user_1.role
-        assert created_user_1.avatar == user_1.avatar
-        assert isinstance(created_user_1.created_at, datetime)
-        assert created_user_1.created_at == datetime(
-            2025, 1, 1, 0, 0, 0, tzinfo=timezone.utc
-        )
+        assert isinstance(created_user.id, UUID)
+        assert created_user.name == user.name
+        assert created_user.email == user.email
+        assert created_user.password == user.password
+        assert created_user.role == user.role
+        assert created_user.avatar == user.avatar
+        assert isinstance(created_user.created_at, datetime)
+        assert created_user.created_at == mock_datetime
 
-        user_2 = User(
-            name='User 2',
-            email='user2@test.com',
-            password='123456789',
-            role=UserRole.USER,
-            avatar='custom-avatar',
-        )
+        found_user = await user_repository.find_by_id(str(created_user.id))
 
-        created_user_2 = await fake_user_repository.create(user_2)
-
-        assert isinstance(created_user_2.id, str)
-        assert created_user_2.id == '2'
-        assert created_user_2.name == user_2.name
-        assert created_user_2.email == user_2.email
-        assert created_user_2.password == user_2.password
-        assert created_user_2.role == user_2.role
-        assert created_user_2.avatar == user_2.avatar
-        assert isinstance(created_user_2.created_at, datetime)
-        assert created_user_2.created_at == datetime(
-            2025, 1, 1, 0, 0, 0, tzinfo=timezone.utc
-        )
+        assert found_user
