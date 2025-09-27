@@ -1,3 +1,4 @@
+from dataclasses import replace
 from datetime import datetime, timezone
 
 import pytest
@@ -120,6 +121,35 @@ class TestUserRepository:
         assert found_user_2.role == created_user_2.role
         assert found_user_2.avatar == created_user_2.avatar
         assert found_user_2.created_at == created_user_2.created_at
+
+    @freeze_time(mock_datetime)
+    async def test_should_update_user(self, user_repository: UserRepository):
+        user_create = User(
+            name='User 1',
+            email='user1@test.com',
+            password='123456789',
+            role=UserRole.ADMIN,
+        )
+
+        await user_repository.create(user_create)
+
+        user_update = replace(
+            user_create,
+            name='User updated',
+            email='user@updated.com',
+            password='updated_password',
+            role=UserRole.USER,
+        )
+
+        updated_user = await user_repository.update(user_update)
+
+        assert user_update.id == updated_user.id
+        assert user_update.name == updated_user.name
+        assert user_update.email == updated_user.email
+        assert user_update.password == updated_user.password
+        assert user_update.role == updated_user.role
+        assert user_update.avatar == updated_user.avatar
+        assert user_update.created_at == updated_user.created_at
 
     @freeze_time(mock_datetime)
     async def test_should_delete_a_user(self, user_repository: UserRepository):
