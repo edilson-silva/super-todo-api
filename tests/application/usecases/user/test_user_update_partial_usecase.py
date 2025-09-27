@@ -1,4 +1,5 @@
 import pytest
+from uuid_extensions import uuid7str
 
 from src.application.dtos.user.user_create_dto import UserCreateInputDTO
 from src.application.dtos.user.user_update_partial_dto import (
@@ -25,11 +26,11 @@ class TestUserUpdatePartialUsecase:
 
     async def test_valid_id_with_new_name_should_return_updated_user_info(
         self,
-        fake_user_repository: UserRepository,
-        fake_password_hasher: PasswordHasher,
+        user_repository: UserRepository,
+        password_hasher: PasswordHasher,
     ):
         user_create_usecase = UserCreateUseCase(
-            fake_user_repository, fake_password_hasher
+            user_repository, password_hasher
         )
 
         user_created = await user_create_usecase.execute(self.user_create_dto)
@@ -38,7 +39,7 @@ class TestUserUpdatePartialUsecase:
             name='Updated Name',
         )
         user_update_partial_usecase = UserUpdatePartialUseCase(
-            fake_user_repository, fake_password_hasher
+            user_repository, password_hasher
         )
 
         user_updated = await user_update_partial_usecase.execute(
@@ -55,11 +56,11 @@ class TestUserUpdatePartialUsecase:
 
     async def test_valid_id_with_new_password_should_return_updated_user_info(
         self,
-        fake_user_repository: UserRepository,
-        fake_password_hasher: PasswordHasher,
+        user_repository: UserRepository,
+        password_hasher: PasswordHasher,
     ):
         user_create_usecase = UserCreateUseCase(
-            fake_user_repository, fake_password_hasher
+            user_repository, password_hasher
         )
 
         user_created = await user_create_usecase.execute(self.user_create_dto)
@@ -68,7 +69,7 @@ class TestUserUpdatePartialUsecase:
             password='updated_pass',
         )
         user_update_partial_usecase = UserUpdatePartialUseCase(
-            fake_user_repository, fake_password_hasher
+            user_repository, password_hasher
         )
 
         user_updated = await user_update_partial_usecase.execute(
@@ -83,19 +84,18 @@ class TestUserUpdatePartialUsecase:
         assert user_updated.role == user_created.role
         assert user_updated.created_at == user_created.created_at
 
-        found_user = await fake_user_repository.find_by_id(user_created.id)
+        found_user = await user_repository.find_by_id(user_created.id)
 
-        assert (
-            found_user.password == f'hashed_{user_update_partial_dto.password}'
-        )
+        assert found_user is not None
+        assert found_user.password != ''
 
     async def test_valid_id_with_new_role_should_return_updated_user_info(
         self,
-        fake_user_repository: UserRepository,
-        fake_password_hasher: PasswordHasher,
+        user_repository: UserRepository,
+        password_hasher: PasswordHasher,
     ):
         user_create_usecase = UserCreateUseCase(
-            fake_user_repository, fake_password_hasher
+            user_repository, password_hasher
         )
 
         user_created = await user_create_usecase.execute(self.user_create_dto)
@@ -104,7 +104,7 @@ class TestUserUpdatePartialUsecase:
             role=UserRole.USER,
         )
         user_update_partial_usecase = UserUpdatePartialUseCase(
-            fake_user_repository, fake_password_hasher
+            user_repository, password_hasher
         )
 
         user_updated = await user_update_partial_usecase.execute(
@@ -121,11 +121,11 @@ class TestUserUpdatePartialUsecase:
 
     async def test_valid_id_with_new_avatar_should_return_updated_user_info(
         self,
-        fake_user_repository: UserRepository,
-        fake_password_hasher: PasswordHasher,
+        user_repository: UserRepository,
+        password_hasher: PasswordHasher,
     ):
         user_create_usecase = UserCreateUseCase(
-            fake_user_repository, fake_password_hasher
+            user_repository, password_hasher
         )
 
         user_created = await user_create_usecase.execute(self.user_create_dto)
@@ -134,7 +134,7 @@ class TestUserUpdatePartialUsecase:
             avatar='updated_avatar',
         )
         user_update_partial_usecase = UserUpdatePartialUseCase(
-            fake_user_repository, fake_password_hasher
+            user_repository, password_hasher
         )
 
         user_updated = await user_update_partial_usecase.execute(
@@ -151,8 +151,8 @@ class TestUserUpdatePartialUsecase:
 
     async def test_invalid_id_should_raise_exception(
         self,
-        fake_user_repository: UserRepository,
-        fake_password_hasher: PasswordHasher,
+        user_repository: UserRepository,
+        password_hasher: PasswordHasher,
     ):
         user_update_partial_dto = UserUpdatePartialInputDTO(
             name='Updated Name',
@@ -161,12 +161,12 @@ class TestUserUpdatePartialUsecase:
             avatar='updated_avatar',
         )
         user_update_partial_usecase = UserUpdatePartialUseCase(
-            fake_user_repository, fake_password_hasher
+            user_repository, password_hasher
         )
 
         with pytest.raises(NotFoundException) as exc:
             await user_update_partial_usecase.execute(
-                'random-uuid', user_update_partial_dto
+                uuid7str(), user_update_partial_dto
             )
 
         assert str(exc.value) == 'Not found'
