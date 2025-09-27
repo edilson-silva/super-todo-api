@@ -25,3 +25,15 @@ class TestPasswordHasher:
         valid = await password_hasher.async_check(password, hashed_password)
 
         assert valid
+
+    async def test_should_check_and_return_true_for_an_invalid_password(
+        self, password_hasher: PasswordHasher
+    ):
+        password = '12345678'
+        hashed_password = (
+            '$2b$10$zZvbpDt7Y2puEr50dK65x.LKRS63PrxL1L6YaW9p5ChgLOcBQrV9S'
+        )
+
+        valid = await password_hasher.async_check(password, hashed_password)
+
+        assert valid is False
