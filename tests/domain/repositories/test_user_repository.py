@@ -115,3 +115,28 @@ class TestUserRepository:
         assert found_user_2.role == created_user_2.role
         assert found_user_2.avatar == created_user_2.avatar
         assert found_user_2.created_at == created_user_2.created_at
+
+    @freeze_time(mock_datetime)
+    async def test_should_delete_a_user(self, user_repository: UserRepository):
+        user = User(
+            name='User 1',
+            email='user1@test.com',
+            password='123456789',
+            role=UserRole.ADMIN,
+        )
+
+        created_user = await user_repository.create(user)
+
+        assert isinstance(created_user.id, str)
+        assert created_user.id != ''
+        assert created_user.name == user.name
+        assert created_user.email == user.email
+        assert created_user.password == user.password
+        assert created_user.role == user.role
+        assert created_user.avatar == user.avatar
+        assert isinstance(created_user.created_at, datetime)
+        assert created_user.created_at == mock_datetime
+
+        response = await user_repository.delete_by_id(str(created_user.id))
+
+        assert response is None
