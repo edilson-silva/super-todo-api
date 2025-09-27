@@ -5,11 +5,12 @@ from uuid import UUID
 
 from uuid_extensions import uuid7
 
+from .base_entity import BaseEntity
 from .user_role import UserRole
 
 
 @dataclass
-class User:
+class User(BaseEntity):
     name: str
     email: str
     password: str
