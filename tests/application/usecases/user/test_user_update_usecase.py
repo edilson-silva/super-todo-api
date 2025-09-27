@@ -1,4 +1,5 @@
 import pytest
+from uuid_extensions import uuid7str
 
 from src.application.dtos.user.user_create_dto import UserCreateInputDTO
 from src.application.dtos.user.user_update_dto import (
@@ -17,8 +18,8 @@ from src.domain.security.password_hasher import PasswordHasher
 class TestUserUpdateUsecase:
     async def test_valid_id_should_return_updated_user_info(
         self,
-        fake_user_repository: UserRepository,
-        fake_password_hasher: PasswordHasher,
+        user_repository: UserRepository,
+        password_hasher: PasswordHasher,
     ):
         user_create_dto = UserCreateInputDTO(
             name='Test User',
@@ -26,7 +27,7 @@ class TestUserUpdateUsecase:
             password='123456789',
         )
         user_create_usecase = UserCreateUseCase(
-            fake_user_repository, fake_password_hasher
+            user_repository, password_hasher
         )
 
         user_created = await user_create_usecase.execute(user_create_dto)
@@ -38,7 +39,7 @@ class TestUserUpdateUsecase:
             avatar='updated_avatar',
         )
         user_update_usecase = UserUpdateUseCase(
-            fake_user_repository, fake_password_hasher
+            user_repository, password_hasher
         )
 
         user_updated = await user_update_usecase.execute(
@@ -55,8 +56,8 @@ class TestUserUpdateUsecase:
 
     async def test_invalid_id_should_raise_exception(
         self,
-        fake_user_repository: UserRepository,
-        fake_password_hasher: PasswordHasher,
+        user_repository: UserRepository,
+        password_hasher: PasswordHasher,
     ):
         user_update_dto = UserUpdateInputDTO(
             name='Updated Name',
@@ -65,10 +66,10 @@ class TestUserUpdateUsecase:
             avatar='updated_avatar',
         )
         user_update_usecase = UserUpdateUseCase(
-            fake_user_repository, fake_password_hasher
+            user_repository, password_hasher
         )
 
         with pytest.raises(NotFoundException) as exc:
-            await user_update_usecase.execute('random-uuid', user_update_dto)
+            await user_update_usecase.execute(uuid7str(), user_update_dto)
 
         assert str(exc.value) == 'Not found'
