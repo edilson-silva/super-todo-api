@@ -1,4 +1,5 @@
 import pytest
+from uuid_extensions import uuid7str
 
 from src.application.dtos.user.user_create_dto import UserCreateInputDTO
 from src.application.usecases.user.user_create_usecase import UserCreateUseCase
@@ -45,6 +46,6 @@ class TestUserGetUsecase:
         user_get_usecase = UserGetUseCase(fake_user_repository)
 
         with pytest.raises(NotFoundException) as exc:
-            await user_get_usecase.execute('random-uuid')
+            await user_get_usecase.execute(uuid7str())
 
         assert str(exc.value) == 'Not found'
