@@ -1,4 +1,5 @@
 import pytest
+from uuid_extensions import uuid7str
 
 from src.application.dtos.user.user_create_dto import UserCreateInputDTO
 from src.application.usecases.user.user_create_usecase import UserCreateUseCase
@@ -12,8 +13,8 @@ from src.domain.security.password_hasher import PasswordHasher
 class TestUserDeleteUsecase:
     async def test_valid_id_should_delete_and_return_success(
         self,
-        fake_user_repository: UserRepository,
-        fake_password_hasher: PasswordHasher,
+        user_repository: UserRepository,
+        password_hasher: PasswordHasher,
     ):
         user_create_dto = UserCreateInputDTO(
             name='Test User',
@@ -21,12 +22,12 @@ class TestUserDeleteUsecase:
             password='123456789',
         )
         user_create_usecase = UserCreateUseCase(
-            fake_user_repository, fake_password_hasher
+            user_repository, password_hasher
         )
 
         user_created = await user_create_usecase.execute(user_create_dto)
 
-        user_delete_usecase = UserDeleteUseCase(fake_user_repository)
+        user_delete_usecase = UserDeleteUseCase(user_repository)
 
         user_deleted = await user_delete_usecase.execute(user_created.id)
 
@@ -34,11 +35,11 @@ class TestUserDeleteUsecase:
 
     async def test_invalid_id_should_raise_exception(
         self,
-        fake_user_repository: UserRepository,
+        user_repository: UserRepository,
     ):
-        user_delete_usecase = UserDeleteUseCase(fake_user_repository)
+        user_delete_usecase = UserDeleteUseCase(user_repository)
 
         with pytest.raises(NotFoundException) as exc:
-            await user_delete_usecase.execute('random-uuid')
+            await user_delete_usecase.execute(uuid7str())
 
         assert str(exc.value) == 'Not found'
