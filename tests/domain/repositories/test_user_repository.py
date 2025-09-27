@@ -1,5 +1,4 @@
 from datetime import datetime, timezone
-from uuid import UUID
 
 import pytest
 from freezegun import freeze_time
@@ -22,9 +21,7 @@ mock_datetime = datetime(
 @pytest.mark.asyncio
 class TestUserRepository:
     @freeze_time(mock_datetime)
-    async def test_should_create_an_user(
-        self, user_repository: UserRepository
-    ):
+    async def test_should_create_a_user(self, user_repository: UserRepository):
         user = User(
             name='User 1',
             email='user1@test.com',
@@ -34,7 +31,8 @@ class TestUserRepository:
 
         created_user = await user_repository.create(user)
 
-        assert isinstance(created_user.id, UUID)
+        assert isinstance(created_user.id, str)
+        assert created_user.id != ''
         assert created_user.name == user.name
         assert created_user.email == user.email
         assert created_user.password == user.password
@@ -46,3 +44,11 @@ class TestUserRepository:
         found_user = await user_repository.find_by_id(str(created_user.id))
 
         assert found_user
+        assert isinstance(found_user.id, str)
+        assert created_user.id == found_user.id
+        assert created_user.name == found_user.name
+        assert created_user.email == found_user.email
+        assert created_user.password == found_user.password
+        assert created_user.role == found_user.role
+        assert created_user.avatar == found_user.avatar
+        assert created_user.created_at == found_user.created_at
