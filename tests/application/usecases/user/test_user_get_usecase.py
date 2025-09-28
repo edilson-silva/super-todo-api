@@ -1,3 +1,5 @@
+from datetime import datetime
+
 import pytest
 from uuid_extensions import uuid7str
 
@@ -36,7 +38,10 @@ class TestUserGetUsecase:
         assert user_found.email == user_created.email
         assert user_found.role == user_created.role
         assert user_found.avatar == user_created.avatar
+        assert isinstance(user_found.created_at, datetime)
         assert user_found.created_at == user_created.created_at
+        assert isinstance(user_found.updated_at, datetime)
+        assert user_found.updated_at == user_created.updated_at
 
     async def test_invalid_id_should_raise_exception(
         self,
