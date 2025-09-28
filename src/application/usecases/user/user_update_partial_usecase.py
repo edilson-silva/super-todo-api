@@ -1,3 +1,5 @@
+from datetime import datetime, timezone
+
 from src.application.dtos.user.user_update_partial_dto import (
     UserUpdatePartialInputDTO,
     UserUpdatePartialOutputDTO,
@@ -49,6 +51,8 @@ class UserUpdatePartialUseCase:
 
         if data.avatar:
             user.avatar = data.avatar
+
+        user.updated_at = datetime.now(timezone.utc)
 
         updated_user: User = await self.repository.update(user)
         return UserUpdatePartialOutputDTO.model_validate(updated_user)
