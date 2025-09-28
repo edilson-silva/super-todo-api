@@ -12,3 +12,4 @@ class UserOutputDTO(BaseDTO):
     role: UserRole
     avatar: str
     created_at: datetime
+    updated_at: datetime

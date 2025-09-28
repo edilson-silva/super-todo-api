@@ -1,3 +1,5 @@
+from datetime import datetime, timezone
+
 from src.application.dtos.user.user_update_dto import (
     UserUpdateInputDTO,
     UserUpdateOutputDTO,
@@ -41,6 +43,7 @@ class UserUpdateUseCase:
         user.password = hashed_password
         user.role = data.role
         user.avatar = data.avatar
+        user.updated_at = datetime.now(timezone.utc)
 
         updated_user: User = await self.repository.update(user)
         return UserUpdateOutputDTO.model_validate(updated_user)
