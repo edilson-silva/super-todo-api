@@ -7,12 +7,22 @@ from httpx import AsyncClient
 
 from src.domain.entities.user_role import UserRole
 
-mock_datetime = datetime(
+mock_create_datetime = datetime(
     2025,
     1,
     1,
     0,
     0,
+    0,
+    0,
+    timezone.utc,
+)
+mock_update_datetime = datetime(
+    2025,
+    1,
+    1,
+    0,
+    5,
     0,
     0,
     timezone.utc,
@@ -50,7 +60,7 @@ class TestUserCreateController:
             ]
         }
 
-    @freeze_time(mock_datetime.isoformat())
+    @freeze_time(mock_create_datetime.isoformat())
     async def test_create_user_info_should_return_success(
         self,
         client: AsyncClient,
@@ -69,23 +79,19 @@ class TestUserCreateController:
         assert created_user['email'] == 'test@example.com'
         assert created_user['role'] == 'admin'
         assert created_user['avatar'] == ''
-        assert created_user['created_at'] == datetime_to_web_iso(mock_datetime)
+        assert created_user['created_at'] == datetime_to_web_iso(
+            mock_create_datetime
+        )
+        assert created_user['updated_at'] == datetime_to_web_iso(
+            mock_create_datetime
+        )
 
     async def test_existing_user_info_should_return_bad_request_error(
-        self, client: AsyncClient, sample_user_info: dict
+        self, client: AsyncClient, sample_user_info: dict, datetime_to_web_iso
     ):
         response1 = await client.post('/users', json=sample_user_info)
 
         assert response1.status_code == status.HTTP_201_CREATED
-
-        created_user = response1.json()
-
-        assert isinstance(created_user['id'], str)
-        assert created_user['id'] != ''
-        assert created_user['name'] == 'Test User'
-        assert created_user['email'] == 'test@example.com'
-        assert created_user['role'] == 'admin'
-        assert created_user['avatar'] == ''
 
         response2 = await client.post('/users', json=sample_user_info)
 
@@ -94,7 +100,7 @@ class TestUserCreateController:
 
 
 class TestUserGetController:
-    @freeze_time(mock_datetime.isoformat())
+    @freeze_time(mock_create_datetime.isoformat())
     async def test_valid_id_should_return_success(
         self, client: AsyncClient, sample_user_info: dict, datetime_to_web_iso
     ):
@@ -117,7 +123,13 @@ class TestUserGetController:
         assert user_found['email'] == user_created['email']
         assert user_found['role'] == user_created['role']
         assert user_found['avatar'] == user_created['avatar']
-        assert user_found['created_at'] == datetime_to_web_iso(mock_datetime)
+        assert user_found['created_at'] == user_created['created_at']
+        assert user_found['created_at'] == datetime_to_web_iso(
+            mock_create_datetime
+        )
+        assert user_found['updated_at'] == datetime_to_web_iso(
+            mock_create_datetime
+        )
 
     async def test_invalid_id_should_return_not_found_error(
         self, client: AsyncClient, sample_user_info: dict
@@ -129,7 +141,7 @@ class TestUserGetController:
 
 
 class TestUserListController:
-    @freeze_time(mock_datetime.isoformat())
+    @freeze_time(mock_create_datetime.isoformat())
     async def test_should_return_success(
         self, client: AsyncClient, sample_user_info: dict, datetime_to_web_iso
     ):
@@ -158,7 +170,8 @@ class TestUserListController:
         assert user['role'] == user_created['role']
         assert user['avatar'] == user_created['avatar']
         assert user['created_at'] == user_created['created_at']
-        assert user['created_at'] == datetime_to_web_iso(mock_datetime)
+        assert user['created_at'] == datetime_to_web_iso(mock_create_datetime)
+        assert user['updated_at'] == datetime_to_web_iso(mock_create_datetime)
 
 
 class TestUserDeleteController:
@@ -225,15 +238,16 @@ class TestUserUpdateController:
         }
 
     async def test_valid_id_should_return_success(
-        self, client: AsyncClient, sample_user_info: dict
+        self, client: AsyncClient, sample_user_info: dict, datetime_to_web_iso
     ):
-        user_create_response = await client.post(
-            '/users', json=sample_user_info
-        )
+        with freeze_time(mock_create_datetime):
+            user_create_response = await client.post(
+                '/users', json=sample_user_info
+            )
 
-        assert user_create_response.status_code == status.HTTP_201_CREATED
+            assert user_create_response.status_code == status.HTTP_201_CREATED
 
-        user_created = user_create_response.json()
+            user_created = user_create_response.json()
 
         user_update_info = {
             'name': 'Updated Name',
@@ -242,13 +256,14 @@ class TestUserUpdateController:
             'avatar': 'updated_avatar',
         }
 
-        user_update_response = await client.put(
-            f'/users/{user_created["id"]}', json=user_update_info
-        )
+        with freeze_time(mock_update_datetime):
+            user_update_response = await client.put(
+                f'/users/{user_created["id"]}', json=user_update_info
+            )
 
-        assert user_update_response.status_code == status.HTTP_200_OK
+            assert user_update_response.status_code == status.HTTP_200_OK
 
-        user_updated = user_update_response.json()
+            user_updated = user_update_response.json()
 
         assert user_updated['id'] == user_created['id']
         assert user_updated['name'] == user_update_info['name']
@@ -256,9 +271,16 @@ class TestUserUpdateController:
         assert user_updated['avatar'] == user_update_info['avatar']
         assert user_updated['role'] == user_update_info['role']
         assert user_updated['created_at'] == user_created['created_at']
+        assert user_updated['created_at'] == datetime_to_web_iso(
+            mock_create_datetime
+        )
+        assert user_updated['updated_at'] != user_created['updated_at']
+        assert user_updated['updated_at'] == datetime_to_web_iso(
+            mock_update_datetime
+        )
 
     async def test_invalid_id_should_return_not_found_error(
-        self, client: AsyncClient, sample_user_info: dict
+        self, client: AsyncClient, sample_user_info: dict, datetime_to_web_iso
     ):
         response = await client.put(
             '/users/invalid-id',
@@ -276,11 +298,12 @@ class TestUserUpdateController:
 
 class TestUserUpdatePartialController:
     async def test_valid_id_and_empty_request_params_should_return_success(
-        self, client: AsyncClient, sample_user_info: dict
+        self, client: AsyncClient, sample_user_info: dict, datetime_to_web_iso
     ):
-        user_create_response = await client.post(
-            '/users', json=sample_user_info
-        )
+        with freeze_time(mock_create_datetime):
+            user_create_response = await client.post(
+                '/users', json=sample_user_info
+            )
 
         assert user_create_response.status_code == status.HTTP_201_CREATED
 
@@ -288,9 +311,10 @@ class TestUserUpdatePartialController:
 
         user_update_partial_info = {}
 
-        user_update_response = await client.patch(
-            f'/users/{user_created["id"]}', json=user_update_partial_info
-        )
+        with freeze_time(mock_update_datetime):
+            user_update_response = await client.patch(
+                f'/users/{user_created["id"]}', json=user_update_partial_info
+            )
 
         assert user_update_response.status_code == status.HTTP_200_OK
 
@@ -302,28 +326,32 @@ class TestUserUpdatePartialController:
         assert user_updated['avatar'] == user_created['avatar']
         assert user_updated['role'] == user_created['role']
         assert user_updated['created_at'] == user_created['created_at']
-
-    async def test_valid_id_and_request_params_should_return_success(
-        self, client: AsyncClient, sample_user_info: dict
-    ):
-        user_create_response = await client.post(
-            '/users', json=sample_user_info
+        assert user_updated['created_at'] == datetime_to_web_iso(
+            mock_create_datetime
         )
+        assert user_updated['updated_at'] == user_created['updated_at']
+        assert user_updated['updated_at'] == datetime_to_web_iso(
+            mock_create_datetime
+        )
+
+    async def test_valid_id_and_new_name_should_return_success(
+        self, client: AsyncClient, sample_user_info: dict, datetime_to_web_iso
+    ):
+        with freeze_time(mock_create_datetime):
+            user_create_response = await client.post(
+                '/users', json=sample_user_info
+            )
 
         assert user_create_response.status_code == status.HTTP_201_CREATED
 
         user_created = user_create_response.json()
 
-        user_update_partial_info = {
-            'name': 'Updated Name',
-            'password': 'updated_pass',
-            'role': UserRole.USER,
-            'avatar': 'updated_avatar',
-        }
+        user_update_partial_info = {'name': 'Updated Name'}
 
-        user_update_response = await client.put(
-            f'/users/{user_created["id"]}', json=user_update_partial_info
-        )
+        with freeze_time(mock_update_datetime):
+            user_update_response = await client.patch(
+                f'/users/{user_created["id"]}', json=user_update_partial_info
+            )
 
         assert user_update_response.status_code == status.HTTP_200_OK
 
@@ -332,9 +360,123 @@ class TestUserUpdatePartialController:
         assert user_updated['id'] == user_created['id']
         assert user_updated['name'] == user_update_partial_info['name']
         assert user_updated['email'] == user_created['email']
+        assert user_updated['avatar'] == user_created['avatar']
+        assert user_updated['role'] == user_created['role']
+        assert user_updated['updated_at'] != user_created['updated_at']
+        assert user_updated['created_at'] == datetime_to_web_iso(
+            mock_create_datetime
+        )
+        assert user_updated['updated_at'] == datetime_to_web_iso(
+            mock_update_datetime
+        )
+
+    async def test_valid_id_and_new_password_should_return_success(
+        self, client: AsyncClient, sample_user_info: dict, datetime_to_web_iso
+    ):
+        with freeze_time(mock_create_datetime):
+            user_create_response = await client.post(
+                '/users', json=sample_user_info
+            )
+
+        assert user_create_response.status_code == status.HTTP_201_CREATED
+
+        user_created = user_create_response.json()
+
+        user_update_partial_info = {'password': 'Updated Password'}
+
+        with freeze_time(mock_update_datetime):
+            user_update_response = await client.patch(
+                f'/users/{user_created["id"]}', json=user_update_partial_info
+            )
+
+        assert user_update_response.status_code == status.HTTP_200_OK
+
+        user_updated = user_update_response.json()
+
+        assert user_updated['id'] == user_created['id']
+        assert user_updated['name'] == user_created['name']
+        assert user_updated['email'] == user_created['email']
+        assert user_updated['avatar'] == user_created['avatar']
+        assert user_updated['role'] == user_created['role']
+        assert user_updated['updated_at'] != user_created['updated_at']
+        assert user_updated['created_at'] == datetime_to_web_iso(
+            mock_create_datetime
+        )
+        assert user_updated['updated_at'] == datetime_to_web_iso(
+            mock_update_datetime
+        )
+
+    async def test_valid_id_and_new_avatar_should_return_success(
+        self, client: AsyncClient, sample_user_info: dict, datetime_to_web_iso
+    ):
+        with freeze_time(mock_create_datetime):
+            user_create_response = await client.post(
+                '/users', json=sample_user_info
+            )
+
+        assert user_create_response.status_code == status.HTTP_201_CREATED
+
+        user_created = user_create_response.json()
+
+        user_update_partial_info = {'avatar': 'Updated Avatar'}
+
+        with freeze_time(mock_update_datetime):
+            user_update_response = await client.patch(
+                f'/users/{user_created["id"]}', json=user_update_partial_info
+            )
+
+        assert user_update_response.status_code == status.HTTP_200_OK
+
+        user_updated = user_update_response.json()
+
+        assert user_updated['id'] == user_created['id']
+        assert user_updated['name'] == user_created['name']
+        assert user_updated['email'] == user_created['email']
         assert user_updated['avatar'] == user_update_partial_info['avatar']
+        assert user_updated['role'] == user_created['role']
+        assert user_updated['updated_at'] != user_created['updated_at']
+        assert user_updated['created_at'] == datetime_to_web_iso(
+            mock_create_datetime
+        )
+        assert user_updated['updated_at'] == datetime_to_web_iso(
+            mock_update_datetime
+        )
+
+    async def test_valid_id_and_new_role_should_return_success(
+        self, client: AsyncClient, sample_user_info: dict, datetime_to_web_iso
+    ):
+        with freeze_time(mock_create_datetime):
+            user_create_response = await client.post(
+                '/users', json=sample_user_info
+            )
+
+        assert user_create_response.status_code == status.HTTP_201_CREATED
+
+        user_created = user_create_response.json()
+
+        user_update_partial_info = {'role': UserRole.USER}
+
+        with freeze_time(mock_update_datetime):
+            user_update_response = await client.patch(
+                f'/users/{user_created["id"]}', json=user_update_partial_info
+            )
+
+        assert user_update_response.status_code == status.HTTP_200_OK
+
+        user_updated = user_update_response.json()
+
+        assert user_updated['id'] == user_created['id']
+        assert user_updated['name'] == user_created['name']
+        assert user_updated['email'] == user_created['email']
+        assert user_updated['avatar'] == user_created['avatar']
         assert user_updated['role'] == user_update_partial_info['role']
-        assert user_updated['created_at'] == user_created['created_at']
+        assert user_updated['updated_at'] != user_created['updated_at']
+        assert user_updated['created_at'] == datetime_to_web_iso(
+            mock_create_datetime
+        )
+        assert user_updated['updated_at'] == datetime_to_web_iso(
+            mock_update_datetime
+        )
 
     async def test_invalid_id_should_return_not_found_error(
         self, client: AsyncClient, sample_user_info: dict
