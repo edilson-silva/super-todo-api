@@ -1,3 +1,4 @@
+from dataclasses import replace
 from datetime import datetime, timezone
 
 from src.application.dtos.user.user_update_partial_dto import (
@@ -37,21 +38,12 @@ class UserUpdatePartialUseCase:
         if not user:
             raise NotFoundException()
 
-        if data.name:
-            user.name = data.name
+        update_data = data.model_dump(exclude_unset=True)
 
-        if data.password:
-            hashed_password = await self.password_hasher.async_hash(
-                data.password
-            )
-            user.password = hashed_password
+        if not update_data:
+            return UserUpdatePartialOutputDTO.model_validate(user)
 
-        if data.role:
-            user.role = data.role
-
-        if data.avatar:
-            user.avatar = data.avatar
-
+        user = replace(user, **update_data)
         user.updated_at = datetime.now(timezone.utc)
 
         updated_user: User = await self.repository.update(user)
