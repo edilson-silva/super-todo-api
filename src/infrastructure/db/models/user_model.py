@@ -18,3 +18,4 @@ class UserModel(Base):
     role: Mapped[UserRole] = mapped_column(Enum(UserRole), nullable=False)
     avatar: Mapped[str] = mapped_column(String, nullable=False)
     created_at: Mapped[DateTime] = mapped_column(DateTime(timezone=True))
+    updated_at: Mapped[DateTime] = mapped_column(DateTime(timezone=True))
