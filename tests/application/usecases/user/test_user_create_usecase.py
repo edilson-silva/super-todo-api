@@ -54,6 +54,8 @@ class TestUserCreateUsecase:
         assert user.role == UserRole.ADMIN
         assert isinstance(user.created_at, datetime)
         assert user.created_at == mock_datetime
+        assert isinstance(user.updated_at, datetime)
+        assert user.updated_at == mock_datetime
 
     async def test_existing_user_should_raise_exception(
         self,
