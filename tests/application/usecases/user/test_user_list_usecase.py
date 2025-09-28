@@ -62,6 +62,7 @@ class TestUserListUsecase:
         assert user_list_user_1.email == user_create_dto_1.email
         assert user_list_user_1.role == UserRole.ADMIN
         assert isinstance(user_list_user_1.created_at, datetime)
+        assert isinstance(user_list_user_1.updated_at, datetime)
 
         user_list_user_2 = users.data[1]
 
@@ -72,6 +73,7 @@ class TestUserListUsecase:
         assert user_list_user_2.email == user_create_dto_2.email
         assert user_list_user_2.role == UserRole.ADMIN
         assert isinstance(user_list_user_2.created_at, datetime)
+        assert isinstance(user_list_user_2.updated_at, datetime)
 
     async def test_should_return_a_list_with_one_user(
         self,
@@ -111,3 +113,4 @@ class TestUserListUsecase:
         assert user_list_user_2.email == user_create_dto_2.email
         assert user_list_user_2.role == UserRole.ADMIN
         assert isinstance(user_list_user_2.created_at, datetime)
+        assert isinstance(user_list_user_2.updated_at, datetime)
