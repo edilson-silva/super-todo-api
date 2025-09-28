@@ -1,3 +1,5 @@
+from datetime import datetime, timezone
+
 from sqlalchemy import DateTime, Enum, String, Uuid
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -17,5 +19,13 @@ class UserModel(Base):
     password: Mapped[str] = mapped_column(String, nullable=False)
     role: Mapped[UserRole] = mapped_column(Enum(UserRole), nullable=False)
     avatar: Mapped[str] = mapped_column(String, nullable=False)
-    created_at: Mapped[DateTime] = mapped_column(DateTime(timezone=True))
-    updated_at: Mapped[DateTime] = mapped_column(DateTime(timezone=True))
+    created_at: Mapped[DateTime] = mapped_column(
+        DateTime(timezone=True),
+        default=datetime.now(timezone.utc),
+        nullable=False,
+    )
+    updated_at: Mapped[DateTime] = mapped_column(
+        DateTime(timezone=True),
+        default=datetime.now(timezone.utc),
+        nullable=False,
+    )
