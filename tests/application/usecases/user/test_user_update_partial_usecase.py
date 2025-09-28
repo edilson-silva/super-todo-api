@@ -1,4 +1,7 @@
+from datetime import datetime, timezone
+
 import pytest
+from freezegun import freeze_time
 from uuid_extensions import uuid7str
 
 from src.application.dtos.user.user_create_dto import UserCreateInputDTO
@@ -14,6 +17,27 @@ from src.domain.entities.user_role import UserRole
 from src.domain.exceptions.exceptions import NotFoundException
 from src.domain.repositories.user_repository import UserRepository
 from src.domain.security.password_hasher import PasswordHasher
+
+mock_create_datetime = datetime(
+    2025,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0,
+    timezone.utc,
+)
+mock_update_datetime = datetime(
+    2025,
+    1,
+    1,
+    0,
+    5,
+    0,
+    0,
+    timezone.utc,
+)
 
 
 @pytest.mark.asyncio
@@ -33,7 +57,10 @@ class TestUserUpdatePartialUsecase:
             user_repository, password_hasher
         )
 
-        user_created = await user_create_usecase.execute(self.user_create_dto)
+        with freeze_time(mock_create_datetime):
+            user_created = await user_create_usecase.execute(
+                self.user_create_dto
+            )
 
         user_update_partial_dto = UserUpdatePartialInputDTO(
             name='Updated Name',
@@ -42,9 +69,10 @@ class TestUserUpdatePartialUsecase:
             user_repository, password_hasher
         )
 
-        user_updated = await user_update_partial_usecase.execute(
-            user_created.id, user_update_partial_dto
-        )
+        with freeze_time(mock_update_datetime):
+            user_updated = await user_update_partial_usecase.execute(
+                user_created.id, user_update_partial_dto
+            )
 
         assert isinstance(user_updated, UserUpdatePartialOutputDTO)
         assert user_updated.id == user_created.id
@@ -52,7 +80,10 @@ class TestUserUpdatePartialUsecase:
         assert user_updated.email == user_created.email
         assert user_updated.avatar == user_created.avatar
         assert user_updated.role == user_created.role
-        assert user_updated.created_at == user_created.created_at
+        assert isinstance(user_updated.created_at, datetime)
+        assert user_updated.created_at == mock_create_datetime
+        assert isinstance(user_updated.updated_at, datetime)
+        assert user_updated.updated_at == mock_update_datetime
 
     async def test_valid_id_with_new_password_should_return_updated_user_info(
         self,
@@ -63,7 +94,10 @@ class TestUserUpdatePartialUsecase:
             user_repository, password_hasher
         )
 
-        user_created = await user_create_usecase.execute(self.user_create_dto)
+        with freeze_time(mock_create_datetime):
+            user_created = await user_create_usecase.execute(
+                self.user_create_dto
+            )
 
         user_update_partial_dto = UserUpdatePartialInputDTO(
             password='updated_pass',
@@ -72,9 +106,10 @@ class TestUserUpdatePartialUsecase:
             user_repository, password_hasher
         )
 
-        user_updated = await user_update_partial_usecase.execute(
-            user_created.id, user_update_partial_dto
-        )
+        with freeze_time(mock_update_datetime):
+            user_updated = await user_update_partial_usecase.execute(
+                user_created.id, user_update_partial_dto
+            )
 
         assert isinstance(user_updated, UserUpdatePartialOutputDTO)
         assert user_updated.id == user_created.id
@@ -82,7 +117,10 @@ class TestUserUpdatePartialUsecase:
         assert user_updated.email == user_created.email
         assert user_updated.avatar == user_created.avatar
         assert user_updated.role == user_created.role
-        assert user_updated.created_at == user_created.created_at
+        assert isinstance(user_updated.created_at, datetime)
+        assert user_updated.created_at == mock_create_datetime
+        assert isinstance(user_updated.updated_at, datetime)
+        assert user_updated.updated_at == mock_update_datetime
 
         found_user = await user_repository.find_by_id(user_created.id)
 
@@ -98,7 +136,10 @@ class TestUserUpdatePartialUsecase:
             user_repository, password_hasher
         )
 
-        user_created = await user_create_usecase.execute(self.user_create_dto)
+        with freeze_time(mock_create_datetime):
+            user_created = await user_create_usecase.execute(
+                self.user_create_dto
+            )
 
         user_update_partial_dto = UserUpdatePartialInputDTO(
             role=UserRole.USER,
@@ -107,9 +148,10 @@ class TestUserUpdatePartialUsecase:
             user_repository, password_hasher
         )
 
-        user_updated = await user_update_partial_usecase.execute(
-            user_created.id, user_update_partial_dto
-        )
+        with freeze_time(mock_update_datetime):
+            user_updated = await user_update_partial_usecase.execute(
+                user_created.id, user_update_partial_dto
+            )
 
         assert isinstance(user_updated, UserUpdatePartialOutputDTO)
         assert user_updated.id == user_created.id
@@ -117,7 +159,10 @@ class TestUserUpdatePartialUsecase:
         assert user_updated.email == user_created.email
         assert user_updated.avatar == user_created.avatar
         assert user_updated.role == user_update_partial_dto.role
-        assert user_updated.created_at == user_created.created_at
+        assert isinstance(user_updated.created_at, datetime)
+        assert user_updated.created_at == mock_create_datetime
+        assert isinstance(user_updated.updated_at, datetime)
+        assert user_updated.updated_at == mock_update_datetime
 
     async def test_valid_id_with_new_avatar_should_return_updated_user_info(
         self,
@@ -128,7 +173,10 @@ class TestUserUpdatePartialUsecase:
             user_repository, password_hasher
         )
 
-        user_created = await user_create_usecase.execute(self.user_create_dto)
+        with freeze_time(mock_create_datetime):
+            user_created = await user_create_usecase.execute(
+                self.user_create_dto
+            )
 
         user_update_partial_dto = UserUpdatePartialInputDTO(
             avatar='updated_avatar',
@@ -137,9 +185,10 @@ class TestUserUpdatePartialUsecase:
             user_repository, password_hasher
         )
 
-        user_updated = await user_update_partial_usecase.execute(
-            user_created.id, user_update_partial_dto
-        )
+        with freeze_time(mock_update_datetime):
+            user_updated = await user_update_partial_usecase.execute(
+                user_created.id, user_update_partial_dto
+            )
 
         assert isinstance(user_updated, UserUpdatePartialOutputDTO)
         assert user_updated.id == user_created.id
@@ -147,7 +196,10 @@ class TestUserUpdatePartialUsecase:
         assert user_updated.email == user_created.email
         assert user_updated.avatar == user_update_partial_dto.avatar
         assert user_updated.role == user_created.role
-        assert user_updated.created_at == user_created.created_at
+        assert isinstance(user_updated.created_at, datetime)
+        assert user_updated.created_at == mock_create_datetime
+        assert isinstance(user_updated.updated_at, datetime)
+        assert user_updated.updated_at == mock_update_datetime
 
     async def test_invalid_id_should_raise_exception(
         self,
