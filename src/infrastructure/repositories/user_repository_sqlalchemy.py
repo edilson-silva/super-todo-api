@@ -33,6 +33,7 @@ class UserRepositorySQLAlchemy(UserRepository):
                 role=user.role,
                 avatar=user.avatar,
                 created_at=user.created_at,
+                updated_at=user.updated_at,
             )
             self.session.add(user_model)
             await self.session.commit()
@@ -65,6 +66,7 @@ class UserRepositorySQLAlchemy(UserRepository):
                 role=result.role,
                 avatar=result.avatar,
                 created_at=result.created_at,
+                updated_at=result.updated_at,
             )
 
     async def find_by_id(self, user_id: str) -> User | None:
@@ -88,6 +90,7 @@ class UserRepositorySQLAlchemy(UserRepository):
                 role=result.role,
                 avatar=result.avatar,
                 created_at=result.created_at,
+                updated_at=result.updated_at,
             )
 
     async def find_all(self, limit: int, offset: int) -> List[User]:
@@ -115,6 +118,7 @@ class UserRepositorySQLAlchemy(UserRepository):
                     role=r.role,
                     avatar=r.avatar,
                     created_at=r.created_at,
+                    updated_at=r.updated_at,
                 )
             )
 
@@ -148,6 +152,7 @@ class UserRepositorySQLAlchemy(UserRepository):
                 password=user.password,
                 role=user.role,
                 avatar=user.avatar,
+                updated_at=user.updated_at,
             )
         )
         await self.session.execute(stmt)
