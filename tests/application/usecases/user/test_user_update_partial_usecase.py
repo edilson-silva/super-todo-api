@@ -48,6 +48,41 @@ class TestUserUpdatePartialUsecase:
         password='123456789',
     )
 
+    async def test_valid_id_with_empty_properties_should_return_user_info(
+        self,
+        user_repository: UserRepository,
+        password_hasher: PasswordHasher,
+    ):
+        user_create_usecase = UserCreateUseCase(
+            user_repository, password_hasher
+        )
+
+        with freeze_time(mock_create_datetime):
+            user_created = await user_create_usecase.execute(
+                self.user_create_dto
+            )
+
+        user_update_partial_dto = UserUpdatePartialInputDTO()
+        user_update_partial_usecase = UserUpdatePartialUseCase(
+            user_repository, password_hasher
+        )
+
+        with freeze_time(mock_update_datetime):
+            user_updated = await user_update_partial_usecase.execute(
+                user_created.id, user_update_partial_dto
+            )
+
+        assert isinstance(user_updated, UserUpdatePartialOutputDTO)
+        assert user_updated.id == user_created.id
+        assert user_updated.name == user_updated.name
+        assert user_updated.email == user_created.email
+        assert user_updated.avatar == user_created.avatar
+        assert user_updated.role == user_created.role
+        assert isinstance(user_updated.created_at, datetime)
+        assert user_updated.created_at == mock_create_datetime
+        assert isinstance(user_updated.updated_at, datetime)
+        assert user_updated.updated_at == mock_create_datetime
+
     async def test_valid_id_with_new_name_should_return_updated_user_info(
         self,
         user_repository: UserRepository,
