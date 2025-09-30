@@ -5,6 +5,7 @@ from alembic import context
 from sqlalchemy.engine import Connection
 
 from src.core.settings import settings
+from src.infrastructure.db.models.company_model import CompanyModel  # noqa
 from src.infrastructure.db.models.user_model import UserModel  # noqa
 from src.infrastructure.db.session import Base, engine
 
