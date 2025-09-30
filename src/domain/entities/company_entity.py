@@ -6,18 +6,15 @@ from uuid import UUID
 from uuid_extensions import uuid7
 
 from .base_entity import BaseEntity
-from .user_role import UserRole
+from .company_type import CompanyType
 
 
 @dataclass
-class User(BaseEntity):
+class Company(BaseEntity):
     name: str
-    email: str
-    password: str
-    company_id: UUID | str | int | bytes
-    role: Optional[UserRole] = UserRole.USER
+    type: Optional[CompanyType] = CompanyType.BASIC
+    max_users: Optional[int] = 3
     id: Optional[UUID | str | int | bytes] = field(default_factory=uuid7)
-    avatar: Optional[str] = ''
     created_at: datetime = field(
         default_factory=lambda: datetime.now(timezone.utc)
     )

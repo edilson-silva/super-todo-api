@@ -9,3 +9,12 @@ class NotFoundException(DomainException):
 
     def __init__(self):
         super().__init__(self.message)
+
+
+class CannotOperateException(DomainException):
+    """Raised when cannot operate over a resource."""
+
+    message = 'Cannot operate: Try again later'
+
+    def __init__(self):
+        super().__init__(self.message)
