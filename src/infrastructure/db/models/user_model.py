@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
 
-from sqlalchemy import DateTime, Enum, String, Uuid
+from sqlalchemy import DateTime, Enum, ForeignKey, String, Uuid
 from sqlalchemy.orm import Mapped, mapped_column
 
 from src.domain.entities.user_role import UserRole
@@ -19,6 +19,9 @@ class UserModel(Base):
     password: Mapped[str] = mapped_column(String, nullable=False)
     role: Mapped[UserRole] = mapped_column(Enum(UserRole), nullable=False)
     avatar: Mapped[str] = mapped_column(String, nullable=False)
+    company_id: Mapped[str] = mapped_column(
+        Uuid, ForeignKey('companies.id', ondelete='CASCADE'), nullable=False
+    )
     created_at: Mapped[DateTime] = mapped_column(
         DateTime(timezone=True),
         default=datetime.now(timezone.utc),
