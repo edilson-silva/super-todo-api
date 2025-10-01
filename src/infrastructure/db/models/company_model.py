@@ -12,7 +12,7 @@ class CompanyModel(Base):
     __tablename__ = 'companies'
 
     id: Mapped[str] = mapped_column(Uuid, primary_key=True, index=True)
-    name: Mapped[str] = mapped_column(String, nullable=False)
+    name: Mapped[str] = mapped_column(String, nullable=False, unique=True)
     type: Mapped[CompanyType] = mapped_column(
         Enum(CompanyType), nullable=False
     )
