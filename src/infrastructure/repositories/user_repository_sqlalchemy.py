@@ -32,6 +32,7 @@ class UserRepositorySQLAlchemy(UserRepository):
                 password=user.password,
                 role=user.role,
                 avatar=user.avatar,
+                company_id=user.company_id,
                 created_at=user.created_at,
                 updated_at=user.updated_at,
             )
@@ -65,6 +66,7 @@ class UserRepositorySQLAlchemy(UserRepository):
                 password=result.password,
                 role=result.role,
                 avatar=result.avatar,
+                company_id=result.company_id,
                 created_at=result.created_at,
                 updated_at=result.updated_at,
             )
@@ -89,6 +91,7 @@ class UserRepositorySQLAlchemy(UserRepository):
                 password=result.password,
                 role=result.role,
                 avatar=result.avatar,
+                company_id=result.company_id,
                 created_at=result.created_at,
                 updated_at=result.updated_at,
             )
@@ -104,21 +107,22 @@ class UserRepositorySQLAlchemy(UserRepository):
         """
         stmt = select(UserModel).limit(limit).offset(offset)
         query = await self.session.execute(stmt)
-        result = query.scalars()
+        results = query.scalars()
 
         users: List[User] = []
 
-        for r in result:
+        for result in results:
             users.append(
                 User(
-                    id=str(r.id),
-                    name=r.name,
-                    email=r.email,
-                    password=r.password,
-                    role=r.role,
-                    avatar=r.avatar,
-                    created_at=r.created_at,
-                    updated_at=r.updated_at,
+                    id=str(result.id),
+                    name=result.name,
+                    email=result.email,
+                    password=result.password,
+                    role=result.role,
+                    avatar=result.avatar,
+                    company_id=result.company_id,
+                    created_at=result.created_at,
+                    updated_at=result.updated_at,
                 )
             )
 

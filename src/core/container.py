@@ -13,10 +13,14 @@ from src.application.usecases.user.user_update_partial_usecase import (
     UserUpdatePartialUseCase,
 )
 from src.application.usecases.user.user_update_usecase import UserUpdateUseCase
+from src.domain.repositories.company_repository import CompanyRepository
 from src.domain.repositories.user_repository import UserRepository
 from src.domain.security.password_hasher import PasswordHasher
 from src.domain.security.token_generator import TokenGenerator
 from src.infrastructure.db.session import get_db
+from src.infrastructure.repositories.company_repository_sqlalchemy import (
+    CompanyRepositorySQLAlchemy,
+)
 from src.infrastructure.repositories.user_repository_sqlalchemy import (
     UserRepositorySQLAlchemy,
 )
@@ -41,6 +45,19 @@ def get_user_repository(
     return UserRepositorySQLAlchemy(session=db)
 
 
+def get_company_repository(
+    db: AsyncGenerator[AsyncSession, None] = Depends(get_db),
+) -> CompanyRepository:
+    """
+    Dependency to get a CompanyRepository instance.
+
+    :param db: Database session dependency.
+
+    :return: An instance of CompanyRepository.
+    """
+    return CompanyRepositorySQLAlchemy(session=db)
+
+
 def get_password_hasher() -> PasswordHasher:
     """
     Dependency to get a PasswordHasher instance.
@@ -60,18 +77,22 @@ def get_token_generator() -> TokenGenerator:
 
 
 def get_auth_signup_use_case(
-    repository: UserRepository = Depends(get_user_repository),
+    user_repository: UserRepository = Depends(get_user_repository),
+    company_repository: CompanyRepository = Depends(get_company_repository),
     password_hasher: PasswordHasher = Depends(get_password_hasher),
 ) -> AuthSignupUseCase:
     """
     Dependency to get an AuthSignupUseCase instance.
 
-    :param repository: UserRepository dependency.
+    :param user_repository: UserRepository dependency.
+    :param company_repository: CompanyRepository dependency.
     :param password_hasher: PasswordHasher dependency.
 
     :return: An instance of AuthSignupUseCase.
     """
-    return AuthSignupUseCase(repository, password_hasher)
+    return AuthSignupUseCase(
+        user_repository, company_repository, password_hasher
+    )
 
 
 def get_auth_signin_use_case(

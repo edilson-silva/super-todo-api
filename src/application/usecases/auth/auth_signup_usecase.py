@@ -2,6 +2,9 @@ from src.application.dtos.auth.auth_signup_dto import AuthSignupInputDTO
 from src.domain.entities.company_entity import Company
 from src.domain.entities.user_entity import User
 from src.domain.entities.user_role import UserRole
+from src.domain.exceptions.company_exceptions import (
+    CompanyAlreadyExistsException,
+)
 from src.domain.exceptions.exceptions import CannotOperateException
 from src.domain.exceptions.user_exceptions import UserAlreadyExistsException
 from src.domain.repositories.company_repository import CompanyRepository
@@ -33,13 +36,20 @@ class AuthSignupUseCase:
 
         :return: No response.
         """
-        user = await self.repository.find_by_email(data.user_email)
+        user = await self.user_repo.find_by_email(data.user_email)
 
         if user:
             raise UserAlreadyExistsException()
 
+        company = await self.company_repo.find_by_name(data.company_name)
+
+        if company:
+            raise CompanyAlreadyExistsException()
+
         company = Company(data.company_name)
-        created_company: Company | None = self.company_repo.create(company)
+        created_company: Company | None = await self.company_repo.create(
+            company
+        )
 
         if not created_company:
             raise CannotOperateException()
@@ -55,4 +65,4 @@ class AuthSignupUseCase:
             company_id=created_company.id,
         )
 
-        await self.repository.create(user)
+        await self.user_repo.create(user)
