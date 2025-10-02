@@ -32,7 +32,7 @@ class UserRepositorySQLAlchemy(UserRepository):
                 password=user.password,
                 role=user.role,
                 avatar=user.avatar,
-                company_id=user.company_id,
+                company_id=UUID(str(user.company_id)),
                 created_at=user.created_at,
                 updated_at=user.updated_at,
             )
