@@ -7,10 +7,14 @@ from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 
 from src.domain.entities.user_entity import UserRole
+from src.domain.repositories.company_repository import CompanyRepository
 from src.domain.repositories.user_repository import UserRepository
 from src.domain.security.password_hasher import PasswordHasher
 from src.domain.security.token_generator import TokenGenerator
 from src.infrastructure.db.session import Base, get_db
+from src.infrastructure.repositories.company_repository_sqlalchemy import (
+    CompanyRepositorySQLAlchemy,
+)
 from src.infrastructure.repositories.user_repository_sqlalchemy import (
     UserRepositorySQLAlchemy,
 )
@@ -65,6 +69,13 @@ async def user_repository(
     get_db_session,
 ) -> UserRepository:
     return UserRepositorySQLAlchemy(get_db_session)
+
+
+@pytest.fixture
+async def company_repository(
+    get_db_session,
+) -> CompanyRepository:
+    return CompanyRepositorySQLAlchemy(get_db_session)
 
 
 @pytest.fixture
