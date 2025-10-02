@@ -9,6 +9,9 @@ from src.application.usecases.auth.auth_signin_usecase import AuthSigninUseCase
 from src.application.usecases.auth.auth_signup_usecase import AuthSignupUseCase
 from src.core.container import AuthSigninUseCaseDep, AuthSignupUseCaseDep
 from src.domain.exceptions.auth_exceptions import InvalidCredentialsException
+from src.domain.exceptions.company_exceptions import (
+    CompanyAlreadyExistsException,
+)
 from src.domain.exceptions.exceptions import NotFoundException
 from src.domain.exceptions.user_exceptions import UserAlreadyExistsException
 
@@ -31,6 +34,11 @@ async def signup(
     except UserAlreadyExistsException:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
+        )
+    except CompanyAlreadyExistsException:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail='Company already registered.',
         )
 
 
