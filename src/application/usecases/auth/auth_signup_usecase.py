@@ -36,7 +36,7 @@ class AuthSignupUseCase:
 
         :return: No response.
         """
-        user = await self.user_repo.find_by_email(data.user_email)
+        user = await self.user_repo.find_by_email(data.email)
 
         if user:
             raise UserAlreadyExistsException()
@@ -54,12 +54,10 @@ class AuthSignupUseCase:
         if not created_company:
             raise CannotOperateException()
 
-        hashed_password = await self.password_hasher.async_hash(
-            data.user_password
-        )
+        hashed_password = await self.password_hasher.async_hash(data.password)
         user = User(
-            name=data.user_name,
-            email=data.user_email,
+            name=data.name,
+            email=data.email,
             password=hashed_password,
             role=UserRole.ADMIN,
             company_id=created_company.id,
