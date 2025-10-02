@@ -10,6 +10,7 @@ from src.application.usecases.auth.auth_signup_usecase import AuthSignupUseCase
 from src.core.settings import settings
 from src.domain.exceptions.auth_exceptions import InvalidCredentialsException
 from src.domain.exceptions.exceptions import NotFoundException
+from src.domain.repositories.company_repository import CompanyRepository
 from src.domain.repositories.user_repository import UserRepository
 from src.domain.security.password_hasher import PasswordHasher
 from src.domain.security.token_generator import TokenGenerator
@@ -20,6 +21,7 @@ class TestAuthSigninUsecase:
     async def test_valid_credentials_should_return_access_token(
         self,
         user_repository: UserRepository,
+        company_repository: CompanyRepository,
         password_hasher: PasswordHasher,
         token_generator: TokenGenerator,
     ):
@@ -28,11 +30,14 @@ class TestAuthSigninUsecase:
         password = '123456789'
 
         signup_dto = AuthSignupInputDTO(
+            company_name='test company',
             name=name,
             email=email,
             password=password,
         )
-        signup_usecase = AuthSignupUseCase(user_repository, password_hasher)
+        signup_usecase = AuthSignupUseCase(
+            user_repository, company_repository, password_hasher
+        )
         await signup_usecase.execute(data=signup_dto)
 
         signin_dto = AuthSigninInputDTO(
@@ -55,20 +60,25 @@ class TestAuthSigninUsecase:
     async def test_invalid_credentials_should_raise_exception(
         self,
         user_repository: UserRepository,
+        company_repository: CompanyRepository,
         password_hasher: PasswordHasher,
         token_generator: TokenGenerator,
     ):
+        company_name = 'test company'
         name = 'test'
         email = 'test@example.com'
         signup_password = '123456789'
         signin_password = '1234567890'
 
         signup_dto = AuthSignupInputDTO(
+            company_name=company_name,
             name=name,
             email=email,
             password=signup_password,
         )
-        signup_usecase = AuthSignupUseCase(user_repository, password_hasher)
+        signup_usecase = AuthSignupUseCase(
+            user_repository, company_repository, password_hasher
+        )
         await signup_usecase.execute(data=signup_dto)
 
         signin_dto = AuthSigninInputDTO(
