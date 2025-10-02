@@ -6,6 +6,7 @@ from httpx import AsyncClient
 @pytest.fixture(scope='class')
 def signup_user_info():
     return {
+        'company_name': 'Test Company',
         'name': 'Test User',
         'email': 'test@example.com',
         'password': '123456789',
@@ -29,6 +30,12 @@ class TestAuthSignupController:
         assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
         assert response.json() == {
             'detail': [
+                {
+                    'type': 'missing',
+                    'loc': ['body', 'company_name'],
+                    'msg': 'Field required',
+                    'input': {},
+                },
                 {
                     'type': 'missing',
                     'loc': ['body', 'name'],
