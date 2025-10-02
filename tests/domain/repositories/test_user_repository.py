@@ -1,8 +1,10 @@
 from dataclasses import replace
 from datetime import datetime, timezone
+from uuid import UUID
 
 import pytest
 from freezegun import freeze_time
+from uuid_extensions import uuid7
 
 from src.domain.entities.user_entity import User, UserRole
 from src.domain.repositories.user_repository import UserRepository
@@ -28,6 +30,7 @@ class TestUserRepository:
             email='user1@test.com',
             password='123456789',
             role=UserRole.ADMIN,
+            company_id=uuid7(),
         )
 
         created_user = await user_repository.create(user)
@@ -39,6 +42,8 @@ class TestUserRepository:
         assert created_user.password == user.password
         assert created_user.role == user.role
         assert created_user.avatar == user.avatar
+        assert isinstance(user.company_id, UUID)
+        assert created_user.company_id == user.company_id
         assert isinstance(created_user.created_at, datetime)
         assert created_user.created_at == mock_datetime
 
@@ -63,6 +68,7 @@ class TestUserRepository:
             email='user1@test.com',
             password='123456789',
             role=UserRole.ADMIN,
+            company_id=uuid7(),
         )
 
         created_user = await user_repository.create(user)
@@ -79,6 +85,7 @@ class TestUserRepository:
         assert created_user.password == found_user.password
         assert created_user.role == found_user.role
         assert created_user.avatar == found_user.avatar
+        assert created_user.company_id == user.company_id
         assert created_user.created_at == found_user.created_at
 
     @freeze_time(mock_datetime)
@@ -88,6 +95,7 @@ class TestUserRepository:
             email='user1@test.com',
             password='123456789',
             role=UserRole.ADMIN,
+            company_id=uuid7(),
         )
         user_2 = User(
             name='User 2',
@@ -95,6 +103,7 @@ class TestUserRepository:
             password='123456789',
             role=UserRole.USER,
             avatar='custom-avatar',
+            company_id=uuid7(),
         )
 
         created_user_1 = await user_repository.create(user_1)
@@ -112,6 +121,7 @@ class TestUserRepository:
         assert found_user_1.password == created_user_1.password
         assert found_user_1.role == created_user_1.role
         assert found_user_1.avatar == created_user_1.avatar
+        assert found_user_1.company_id == created_user_1.company_id
         assert found_user_1.created_at == created_user_1.created_at
 
         assert found_user_2.id == created_user_2.id
@@ -120,6 +130,7 @@ class TestUserRepository:
         assert found_user_2.password == created_user_2.password
         assert found_user_2.role == created_user_2.role
         assert found_user_2.avatar == created_user_2.avatar
+        assert found_user_2.company_id == created_user_2.company_id
         assert found_user_2.created_at == created_user_2.created_at
 
     @freeze_time(mock_datetime)
@@ -129,6 +140,7 @@ class TestUserRepository:
             email='user1@test.com',
             password='123456789',
             role=UserRole.ADMIN,
+            company_id=uuid7(),
         )
 
         await user_repository.create(user_create)
@@ -149,6 +161,7 @@ class TestUserRepository:
         assert user_update.password == updated_user.password
         assert user_update.role == updated_user.role
         assert user_update.avatar == updated_user.avatar
+        assert user_update.company_id == updated_user.company_id
         assert user_update.created_at == updated_user.created_at
 
     @freeze_time(mock_datetime)
@@ -158,6 +171,7 @@ class TestUserRepository:
             email='user1@test.com',
             password='123456789',
             role=UserRole.ADMIN,
+            company_id=uuid7(),
         )
 
         created_user = await user_repository.create(user)
