@@ -25,7 +25,11 @@ class TokenGeneratorPyJWT(TokenGenerator):
 
         :return: The generated token.
         """
-        token_payload = {'sub': payload.user_id, 'role': payload.user_role}
+        token_payload = {
+            'sub': payload.user_id,
+            'role': payload.user_role,
+            'company': payload.company_id,
+        }
         token = encode(
             token_payload, self.secret_key, algorithm=self.algorithm
         )

@@ -51,6 +51,7 @@ class AuthSigninUseCase:
         token_payload = TokenGeneratorEncodeInputDTO(
             user_id=str(user.id),
             user_role=user.role,
+            company_id=str(user.company_id),
         )
         token = await self.token_generator.async_encode(token_payload)
 
