@@ -100,16 +100,26 @@ class UserRepositorySQLAlchemy(UserRepository):
                 updated_at=result.updated_at,
             )
 
-    async def find_all(self, limit: int, offset: int) -> List[User]:
+    async def find_all(
+        self, company_id: str, limit: int, offset: int
+    ) -> List[User]:
         """
-        Find all users.
+        Find all company users.
 
+        :param company_id: The company id to filter users.
         :param limit: Maximum number of users returned.
         :param offset: Number of users ignored in the search.
 
-        :return: The user if found and None otherwise.
+        :return: The list of found users.
         """
-        stmt = select(UserModel).limit(limit).offset(offset)
+        stmt = (
+            select(UserModel)
+            .filter(
+                UserModel.company_id == UUID(company_id),
+            )
+            .limit(limit)
+            .offset(offset)
+        )
         query = await self.session.execute(stmt)
         results = query.scalars()
 
