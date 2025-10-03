@@ -45,10 +45,13 @@ class TestUserUpdateUsecase:
         user_repository: UserRepository,
         password_hasher: PasswordHasher,
     ):
+        company_id = uuid7str()
+
         user_create_dto = UserCreateInputDTO(
             name='Test User',
             email='test@example.com',
             password='123456789',
+            company_id=company_id,
         )
         user_create_usecase = UserCreateUseCase(
             user_repository, password_hasher
@@ -69,7 +72,7 @@ class TestUserUpdateUsecase:
 
         with freeze_time(mock_update_datetime):
             user_updated = await user_update_usecase.execute(
-                user_created.id, user_update_dto
+                user_created.id, company_id, user_update_dto
             )
 
         assert isinstance(user_updated, UserUpdateOutputDTO)
@@ -98,6 +101,8 @@ class TestUserUpdateUsecase:
         )
 
         with pytest.raises(NotFoundException) as exc:
-            await user_update_usecase.execute(uuid7str(), user_update_dto)
+            await user_update_usecase.execute(
+                uuid7str(), uuid7str(), user_update_dto
+            )
 
         assert str(exc.value) == 'Not found'
