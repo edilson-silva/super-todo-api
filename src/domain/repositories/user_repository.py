@@ -28,11 +28,12 @@ class UserRepository(ABC):
         pass
 
     @abstractmethod
-    async def find_by_id(self, user_id: str) -> User | None:
+    async def find_by_id(self, user_id: str, company_id: str) -> User | None:
         """
         Find a user baed on its id.
 
         :param user_id: Serch id.
+        :param company_id: Id of the company the user belongs to.
 
         :return: The user if found and None otherwise.
         """
