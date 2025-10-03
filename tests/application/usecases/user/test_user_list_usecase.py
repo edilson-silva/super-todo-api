@@ -1,6 +1,7 @@
 from datetime import datetime
 
 import pytest
+from uuid_extensions import uuid7str
 
 from src.application.dtos.user.user_create_dto import UserCreateInputDTO
 from src.application.dtos.user.user_list_dto import UserListOutputDTO
@@ -33,11 +34,13 @@ class TestUserListUsecase:
             name='User1',
             email='test1@example.com',
             password='123456789',
+            company_id=uuid7str(),
         )
         user_create_dto_2 = UserCreateInputDTO(
             name='User2',
             email='test2@example.com',
             password='123456789',
+            company_id=uuid7str(),
         )
 
         user_create_usecase = UserCreateUseCase(
@@ -84,11 +87,13 @@ class TestUserListUsecase:
             name='User1',
             email='test1@example.com',
             password='123456789',
+            company_id=uuid7str(),
         )
         user_create_dto_2 = UserCreateInputDTO(
             name='User2',
             email='test2@example.com',
             password='123456789',
+            company_id=uuid7str(),
         )
 
         user_create_usecase = UserCreateUseCase(
