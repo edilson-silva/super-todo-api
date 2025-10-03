@@ -43,11 +43,11 @@ mock_update_datetime = datetime(
 @pytest.mark.asyncio
 class TestUserUpdatePartialUsecase:
     company_id = uuid7str()
+    company_id = uuid7str()
     user_create_dto = UserCreateInputDTO(
         name='Test User',
         email='test@example.com',
         password='123456789',
-        company_id=company_id,
     )
 
     async def test_valid_id_with_empty_properties_should_return_user_info(
@@ -61,7 +61,7 @@ class TestUserUpdatePartialUsecase:
 
         with freeze_time(mock_create_datetime):
             user_created = await user_create_usecase.execute(
-                self.user_create_dto
+                self.company_id, self.user_create_dto
             )
 
         user_update_partial_dto = UserUpdatePartialInputDTO()
@@ -96,7 +96,7 @@ class TestUserUpdatePartialUsecase:
 
         with freeze_time(mock_create_datetime):
             user_created = await user_create_usecase.execute(
-                self.user_create_dto
+                self.company_id, self.user_create_dto
             )
 
         user_update_partial_dto = UserUpdatePartialInputDTO(
@@ -133,7 +133,7 @@ class TestUserUpdatePartialUsecase:
 
         with freeze_time(mock_create_datetime):
             user_created = await user_create_usecase.execute(
-                self.user_create_dto
+                self.company_id, self.user_create_dto
             )
 
         user_update_partial_dto = UserUpdatePartialInputDTO(
@@ -178,7 +178,7 @@ class TestUserUpdatePartialUsecase:
 
         with freeze_time(mock_create_datetime):
             user_created = await user_create_usecase.execute(
-                self.user_create_dto
+                self.company_id, self.user_create_dto
             )
 
         user_update_partial_dto = UserUpdatePartialInputDTO(
@@ -215,7 +215,7 @@ class TestUserUpdatePartialUsecase:
 
         with freeze_time(mock_create_datetime):
             user_created = await user_create_usecase.execute(
-                self.user_create_dto
+                self.company_id, self.user_create_dto
             )
 
         user_update_partial_dto = UserUpdatePartialInputDTO(

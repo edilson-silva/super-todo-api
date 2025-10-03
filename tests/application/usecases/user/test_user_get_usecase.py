@@ -13,29 +13,30 @@ from src.domain.security.password_hasher import PasswordHasher
 
 @pytest.mark.asyncio
 class TestUserGetUsecase:
+    company_id = uuid7str()
+
     async def test_valid_id_should_return_found_user(
         self,
         user_repository: UserRepository,
         password_hasher: PasswordHasher,
     ):
-        company_id = uuid7str()
-
         user_create_dto = UserCreateInputDTO(
             name='Test User',
             email='test@example.com',
             password='123456789',
-            company_id=company_id,
         )
         user_create_usecase = UserCreateUseCase(
             user_repository, password_hasher
         )
 
-        user_created = await user_create_usecase.execute(user_create_dto)
+        user_created = await user_create_usecase.execute(
+            self.company_id, user_create_dto
+        )
 
         user_get_usecase = UserGetUseCase(user_repository)
 
         user_found = await user_get_usecase.execute(
-            user_created.id, company_id
+            user_created.id, self.company_id
         )
 
         assert user_found.id == user_created.id
@@ -56,6 +57,6 @@ class TestUserGetUsecase:
         user_get_usecase = UserGetUseCase(user_repository)
 
         with pytest.raises(NotFoundException) as exc:
-            await user_get_usecase.execute(uuid7str(), uuid7str())
+            await user_get_usecase.execute(uuid7str(), self.company_id)
 
         assert str(exc.value) == 'Not found'

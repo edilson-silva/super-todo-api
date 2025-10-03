@@ -40,25 +40,26 @@ mock_update_datetime = datetime(
 
 @pytest.mark.asyncio
 class TestUserUpdateUsecase:
+    company_id = uuid7str()
+
     async def test_valid_id_should_return_updated_user_info(
         self,
         user_repository: UserRepository,
         password_hasher: PasswordHasher,
     ):
-        company_id = uuid7str()
-
         user_create_dto = UserCreateInputDTO(
             name='Test User',
             email='test@example.com',
             password='123456789',
-            company_id=company_id,
         )
         user_create_usecase = UserCreateUseCase(
             user_repository, password_hasher
         )
 
         with freeze_time(mock_create_datetime):
-            user_created = await user_create_usecase.execute(user_create_dto)
+            user_created = await user_create_usecase.execute(
+                self.company_id, user_create_dto
+            )
 
         user_update_dto = UserUpdateInputDTO(
             name='Updated Name',
@@ -72,7 +73,7 @@ class TestUserUpdateUsecase:
 
         with freeze_time(mock_update_datetime):
             user_updated = await user_update_usecase.execute(
-                user_created.id, company_id, user_update_dto
+                user_created.id, self.company_id, user_update_dto
             )
 
         assert isinstance(user_updated, UserUpdateOutputDTO)
@@ -102,7 +103,7 @@ class TestUserUpdateUsecase:
 
         with pytest.raises(NotFoundException) as exc:
             await user_update_usecase.execute(
-                uuid7str(), uuid7str(), user_update_dto
+                uuid7str(), self.company_id, user_update_dto
             )
 
         assert str(exc.value) == 'Not found'

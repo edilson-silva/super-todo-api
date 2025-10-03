@@ -14,15 +14,15 @@ from src.domain.security.password_hasher import PasswordHasher
 
 @pytest.mark.asyncio
 class TestUserListUsecase:
+    company_id = uuid7str()
+
     async def test_should_return_an_empty_users_list(
         self,
         user_repository: UserRepository,
     ):
-        company_id = uuid7str()
-
         user_list_usecase = UserListUseCase(user_repository)
 
-        users = await user_list_usecase.execute(company_id, 10, 0)
+        users = await user_list_usecase.execute(self.company_id, 10, 0)
 
         assert isinstance(users, UserListOutputDTO)
         assert users.data == []
@@ -32,30 +32,26 @@ class TestUserListUsecase:
         user_repository: UserRepository,
         password_hasher: PasswordHasher,
     ):
-        company_id = uuid7str()
-
         user_create_dto_1 = UserCreateInputDTO(
             name='User1',
             email='test1@example.com',
             password='123456789',
-            company_id=company_id,
         )
         user_create_dto_2 = UserCreateInputDTO(
             name='User2',
             email='test2@example.com',
             password='123456789',
-            company_id=company_id,
         )
 
         user_create_usecase = UserCreateUseCase(
             user_repository, password_hasher
         )
 
-        await user_create_usecase.execute(user_create_dto_1)
-        await user_create_usecase.execute(user_create_dto_2)
+        await user_create_usecase.execute(self.company_id, user_create_dto_1)
+        await user_create_usecase.execute(self.company_id, user_create_dto_2)
         user_list_usecase = UserListUseCase(user_repository)
 
-        users = await user_list_usecase.execute(company_id, 10, 0)
+        users = await user_list_usecase.execute(self.company_id, 10, 0)
 
         assert isinstance(users, UserListOutputDTO)
         assert len(users.data) == 2
@@ -93,24 +89,22 @@ class TestUserListUsecase:
             name='User1',
             email='test1@example.com',
             password='123456789',
-            company_id=company_id,
         )
         user_create_dto_2 = UserCreateInputDTO(
             name='User2',
             email='test2@example.com',
             password='123456789',
-            company_id=company_id,
         )
 
         user_create_usecase = UserCreateUseCase(
             user_repository, password_hasher
         )
 
-        await user_create_usecase.execute(user_create_dto_1)
-        await user_create_usecase.execute(user_create_dto_2)
+        await user_create_usecase.execute(self.company_id, user_create_dto_1)
+        await user_create_usecase.execute(self.company_id, user_create_dto_2)
         user_list_usecase = UserListUseCase(user_repository)
 
-        users = await user_list_usecase.execute(company_id, 10, 1)
+        users = await user_list_usecase.execute(self.company_id, 10, 1)
 
         assert isinstance(users, UserListOutputDTO)
         assert len(users.data) == 1

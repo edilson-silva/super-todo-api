@@ -11,29 +11,31 @@ from src.domain.security.password_hasher import PasswordHasher
 
 @pytest.mark.asyncio
 class TestUserDeleteUsecase:
+    company_id = uuid7str()
+
     async def test_valid_id_should_delete_and_return_success(
         self,
         user_repository: UserRepository,
         password_hasher: PasswordHasher,
     ):
-        company_id = uuid7str()
-
         user_create_dto = UserCreateInputDTO(
             name='Test User',
             email='test@example.com',
             password='123456789',
-            company_id=company_id,
         )
         user_create_usecase = UserCreateUseCase(
             user_repository, password_hasher
         )
 
-        user_created = await user_create_usecase.execute(user_create_dto)
+        user_created = await user_create_usecase.execute(
+            self.company_id, user_create_dto
+        )
 
         user_delete_usecase = UserDeleteUseCase(user_repository)
 
         user_deleted = await user_delete_usecase.execute(
-            user_created.id, company_id
+            user_created.id,
+            self.company_id,
         )
 
         assert user_deleted is None
@@ -45,6 +47,9 @@ class TestUserDeleteUsecase:
         user_delete_usecase = UserDeleteUseCase(user_repository)
 
         with pytest.raises(NotFoundException) as exc:
-            await user_delete_usecase.execute(uuid7str(), uuid7str())
+            await user_delete_usecase.execute(
+                uuid7str(),
+                self.company_id,
+            )
 
         assert str(exc.value) == 'Not found'
