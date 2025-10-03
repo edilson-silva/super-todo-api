@@ -18,10 +18,13 @@ class TestUserGetUsecase:
         user_repository: UserRepository,
         password_hasher: PasswordHasher,
     ):
+        company_id = uuid7str()
+
         user_create_dto = UserCreateInputDTO(
             name='Test User',
             email='test@example.com',
             password='123456789',
+            company_id=company_id,
         )
         user_create_usecase = UserCreateUseCase(
             user_repository, password_hasher
@@ -31,7 +34,9 @@ class TestUserGetUsecase:
 
         user_get_usecase = UserGetUseCase(user_repository)
 
-        user_found = await user_get_usecase.execute(user_created.id)
+        user_found = await user_get_usecase.execute(
+            user_created.id, company_id
+        )
 
         assert user_found.id == user_created.id
         assert user_found.name == user_created.name
@@ -51,6 +56,6 @@ class TestUserGetUsecase:
         user_get_usecase = UserGetUseCase(user_repository)
 
         with pytest.raises(NotFoundException) as exc:
-            await user_get_usecase.execute(uuid7str())
+            await user_get_usecase.execute(uuid7str(), uuid7str())
 
         assert str(exc.value) == 'Not found'
