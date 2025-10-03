@@ -14,7 +14,6 @@ class UserCreateInputDTO(BaseDTO):
     password: str
     role: Optional[UserRole] = UserRole.ADMIN
     avatar: Optional[str] = ''
-    company_id: str
 
 
 class UserCreateOutputDTO(UserOutputDTO):

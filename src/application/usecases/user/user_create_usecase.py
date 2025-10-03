@@ -19,13 +19,14 @@ class UserCreateUseCase:
         self.repository = repository
         self.password_hasher = password_hasher
 
-    async def execute(self, data: UserCreateInputDTO) -> UserCreateOutputDTO:
+    async def execute(
+        self, company_id: str, data: UserCreateInputDTO
+    ) -> UserCreateOutputDTO:
         """
         Create a new user and store it in the repository.
 
-        :param name: The name of the user.
-        :param email: The email of the user.
-        :param password: The password of the user.
+        :company_id: ID of the company the user belongs to.
+        :param data: User creation data.
 
         :return: The created User entity.
         """
@@ -42,7 +43,7 @@ class UserCreateUseCase:
             password=hashed_password,
             role=data.role,
             avatar=data.avatar,
-            company_id=data.company_id,
+            company_id=company_id,
         )
 
         created_user: User = await self.repository.create(user)
