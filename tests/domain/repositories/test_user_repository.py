@@ -1,10 +1,9 @@
 from dataclasses import replace
 from datetime import datetime, timezone
-from uuid import UUID
 
 import pytest
 from freezegun import freeze_time
-from uuid_extensions import uuid7
+from uuid_extensions import uuid7str
 
 from src.domain.entities.user_entity import User, UserRole
 from src.domain.repositories.user_repository import UserRepository
@@ -23,6 +22,8 @@ mock_datetime = datetime(
 
 @pytest.mark.asyncio
 class TestUserRepository:
+    company_id = uuid7str()
+
     @freeze_time(mock_datetime)
     async def test_should_create_a_user(self, user_repository: UserRepository):
         user = User(
@@ -30,7 +31,7 @@ class TestUserRepository:
             email='user1@test.com',
             password='123456789',
             role=UserRole.ADMIN,
-            company_id=uuid7(),
+            company_id=self.company_id,
         )
 
         created_user = await user_repository.create(user)
@@ -42,12 +43,14 @@ class TestUserRepository:
         assert created_user.password == user.password
         assert created_user.role == user.role
         assert created_user.avatar == user.avatar
-        assert isinstance(user.company_id, UUID)
+        assert isinstance(user.company_id, str)
         assert created_user.company_id == user.company_id
         assert isinstance(created_user.created_at, datetime)
         assert created_user.created_at == mock_datetime
 
-        found_user = await user_repository.find_by_id(str(created_user.id))
+        found_user = await user_repository.find_by_id(
+            str(created_user.id), self.company_id
+        )
 
         assert found_user
         assert isinstance(found_user.id, str)
@@ -68,7 +71,7 @@ class TestUserRepository:
             email='user1@test.com',
             password='123456789',
             role=UserRole.ADMIN,
-            company_id=uuid7(),
+            company_id=self.company_id,
         )
 
         created_user = await user_repository.create(user)
@@ -95,7 +98,7 @@ class TestUserRepository:
             email='user1@test.com',
             password='123456789',
             role=UserRole.ADMIN,
-            company_id=uuid7(),
+            company_id=self.company_id,
         )
         user_2 = User(
             name='User 2',
@@ -103,13 +106,13 @@ class TestUserRepository:
             password='123456789',
             role=UserRole.USER,
             avatar='custom-avatar',
-            company_id=uuid7(),
+            company_id=self.company_id,
         )
 
         created_user_1 = await user_repository.create(user_1)
         created_user_2 = await user_repository.create(user_2)
 
-        found_users = await user_repository.find_all(10, 0)
+        found_users = await user_repository.find_all(self.company_id, 10, 0)
 
         assert len(found_users) == 2
 
@@ -140,7 +143,7 @@ class TestUserRepository:
             email='user1@test.com',
             password='123456789',
             role=UserRole.ADMIN,
-            company_id=uuid7(),
+            company_id=self.company_id,
         )
 
         await user_repository.create(user_create)
@@ -171,11 +174,13 @@ class TestUserRepository:
             email='user1@test.com',
             password='123456789',
             role=UserRole.ADMIN,
-            company_id=uuid7(),
+            company_id=uuid7str(),
         )
 
         created_user = await user_repository.create(user)
 
-        response = await user_repository.delete_by_id(str(created_user.id))
+        response = await user_repository.delete_by_id(
+            str(created_user.id), self.company_id
+        )
 
         assert response is None
