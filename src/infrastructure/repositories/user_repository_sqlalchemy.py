@@ -66,7 +66,7 @@ class UserRepositorySQLAlchemy(UserRepository):
                 password=result.password,
                 role=result.role,
                 avatar=result.avatar,
-                company_id=result.company_id,
+                company_id=str(result.company_id),
                 created_at=result.created_at,
                 updated_at=result.updated_at,
             )
@@ -95,7 +95,7 @@ class UserRepositorySQLAlchemy(UserRepository):
                 password=result.password,
                 role=result.role,
                 avatar=result.avatar,
-                company_id=result.company_id,
+                company_id=str(result.company_id),
                 created_at=result.created_at,
                 updated_at=result.updated_at,
             )
@@ -134,7 +134,7 @@ class UserRepositorySQLAlchemy(UserRepository):
                     password=result.password,
                     role=result.role,
                     avatar=result.avatar,
-                    company_id=result.company_id,
+                    company_id=str(result.company_id),
                     created_at=result.created_at,
                     updated_at=result.updated_at,
                 )
