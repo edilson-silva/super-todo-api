@@ -2,6 +2,7 @@ from datetime import datetime, timezone
 
 import pytest
 from freezegun import freeze_time
+from uuid_extensions import uuid7str
 
 from src.application.dtos.user.user_create_dto import (
     UserCreateInputDTO,
@@ -37,6 +38,7 @@ class TestUserCreateUsecase:
             name='Test User',
             email='test@example.com',
             password='123456789',
+            company_id=uuid7str(),
         )
         user_create_usecase = UserCreateUseCase(
             user_repository, password_hasher
@@ -66,6 +68,7 @@ class TestUserCreateUsecase:
             name='Test User',
             email='test@example.com',
             password='123456789',
+            company_id=uuid7str(),
         )
         user_create_usecase = UserCreateUseCase(
             user_repository, password_hasher
