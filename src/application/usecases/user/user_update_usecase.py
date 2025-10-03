@@ -22,17 +22,18 @@ class UserUpdateUseCase:
         self.password_hasher = password_hasher
 
     async def execute(
-        self, user_id: str, data: UserUpdateInputDTO
+        self, user_id: str, company_id: str, data: UserUpdateInputDTO
     ) -> UserUpdateOutputDTO:
         """
         Update an user info based on its id.
 
         :param id: Id of user to update
+        :company_id: Id of the company the user belongs to.
         :param data: User new data.
 
         :return: The updated User entity.
         """
-        user = await self.repository.find_by_id(user_id)
+        user = await self.repository.find_by_id(user_id, company_id)
 
         if not user:
             raise NotFoundException()
