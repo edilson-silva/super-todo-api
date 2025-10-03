@@ -42,10 +42,12 @@ mock_update_datetime = datetime(
 
 @pytest.mark.asyncio
 class TestUserUpdatePartialUsecase:
+    company_id = uuid7str()
     user_create_dto = UserCreateInputDTO(
         name='Test User',
         email='test@example.com',
         password='123456789',
+        company_id=company_id,
     )
 
     async def test_valid_id_with_empty_properties_should_return_user_info(
@@ -69,7 +71,7 @@ class TestUserUpdatePartialUsecase:
 
         with freeze_time(mock_update_datetime):
             user_updated = await user_update_partial_usecase.execute(
-                user_created.id, user_update_partial_dto
+                user_created.id, self.company_id, user_update_partial_dto
             )
 
         assert isinstance(user_updated, UserUpdatePartialOutputDTO)
@@ -106,7 +108,7 @@ class TestUserUpdatePartialUsecase:
 
         with freeze_time(mock_update_datetime):
             user_updated = await user_update_partial_usecase.execute(
-                user_created.id, user_update_partial_dto
+                user_created.id, self.company_id, user_update_partial_dto
             )
 
         assert isinstance(user_updated, UserUpdatePartialOutputDTO)
@@ -143,7 +145,7 @@ class TestUserUpdatePartialUsecase:
 
         with freeze_time(mock_update_datetime):
             user_updated = await user_update_partial_usecase.execute(
-                user_created.id, user_update_partial_dto
+                user_created.id, self.company_id, user_update_partial_dto
             )
 
         assert isinstance(user_updated, UserUpdatePartialOutputDTO)
@@ -157,7 +159,10 @@ class TestUserUpdatePartialUsecase:
         assert isinstance(user_updated.updated_at, datetime)
         assert user_updated.updated_at == mock_update_datetime
 
-        found_user = await user_repository.find_by_id(user_created.id)
+        found_user = await user_repository.find_by_id(
+            user_created.id,
+            self.company_id,
+        )
 
         assert found_user is not None
         assert found_user.password != ''
@@ -185,7 +190,7 @@ class TestUserUpdatePartialUsecase:
 
         with freeze_time(mock_update_datetime):
             user_updated = await user_update_partial_usecase.execute(
-                user_created.id, user_update_partial_dto
+                user_created.id, self.company_id, user_update_partial_dto
             )
 
         assert isinstance(user_updated, UserUpdatePartialOutputDTO)
@@ -222,7 +227,7 @@ class TestUserUpdatePartialUsecase:
 
         with freeze_time(mock_update_datetime):
             user_updated = await user_update_partial_usecase.execute(
-                user_created.id, user_update_partial_dto
+                user_created.id, self.company_id, user_update_partial_dto
             )
 
         assert isinstance(user_updated, UserUpdatePartialOutputDTO)
@@ -253,7 +258,7 @@ class TestUserUpdatePartialUsecase:
 
         with pytest.raises(NotFoundException) as exc:
             await user_update_partial_usecase.execute(
-                uuid7str(), user_update_partial_dto
+                uuid7str(), self.company_id, user_update_partial_dto
             )
 
         assert str(exc.value) == 'Not found'
