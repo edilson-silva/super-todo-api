@@ -10,16 +10,19 @@ class UserListUseCase:
         """
         self.repository = repository
 
-    async def execute(self, limit: int, offset: int) -> UserListOutputDTO:
+    async def execute(
+        self, company_id: str, limit: int, offset: int
+    ) -> UserListOutputDTO:
         """
         Get the list of users.
 
+        :param company_id: The company id to filter users.
         :param limit: Maximum number of users returned.
         :param offset: Number of users ignored in the search.
 
         :return: List of users.
         """
-        users = await self.repository.find_all(limit, offset)
+        users = await self.repository.find_all(company_id, limit, offset)
 
         users_output_dto = UserListOutputDTO(
             data=list(map(lambda u: UserOutputDTO.model_validate(u), users))
