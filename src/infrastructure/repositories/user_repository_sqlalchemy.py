@@ -142,15 +142,19 @@ class UserRepositorySQLAlchemy(UserRepository):
 
         return users
 
-    async def delete_by_id(self, user_id: str) -> None:
+    async def delete_by_id(self, user_id: str, company_id: str) -> None:
         """
         Delete a user baed on its id.
 
         :param user_id: Serch id.
+        :param company_id: Id of the company the user belongs to.
 
         :return: None.
         """
-        stmt = delete(UserModel).filter(UserModel.id == UUID(user_id))
+        stmt = delete(UserModel).filter(
+            UserModel.id == UUID(user_id),
+            UserModel.company_id == UUID(company_id),
+        )
         await self.session.execute(stmt)
         await self.session.commit()
 
