@@ -28,6 +28,8 @@ mock_datetime = datetime(
 
 @pytest.mark.asyncio
 class TestUserCreateUsecase:
+    company_id = uuid7str()
+
     @freeze_time(mock_datetime)
     async def test_new_user_info_should_return_created_user(
         self,
@@ -38,13 +40,14 @@ class TestUserCreateUsecase:
             name='Test User',
             email='test@example.com',
             password='123456789',
-            company_id=uuid7str(),
         )
         user_create_usecase = UserCreateUseCase(
             user_repository, password_hasher
         )
 
-        user = await user_create_usecase.execute(user_create_dto)
+        user = await user_create_usecase.execute(
+            self.company_id, user_create_dto
+        )
 
         assert isinstance(user, UserCreateOutputDTO)
 
@@ -68,15 +71,14 @@ class TestUserCreateUsecase:
             name='Test User',
             email='test@example.com',
             password='123456789',
-            company_id=uuid7str(),
         )
         user_create_usecase = UserCreateUseCase(
             user_repository, password_hasher
         )
 
-        await user_create_usecase.execute(user_create_dto)
+        await user_create_usecase.execute(self.company_id, user_create_dto)
 
         with pytest.raises(UserAlreadyExistsException) as exc:
-            await user_create_usecase.execute(user_create_dto)
+            await user_create_usecase.execute(self.company_id, user_create_dto)
 
         assert str(exc.value) == 'Email already registered'
