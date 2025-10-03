@@ -9,17 +9,18 @@ class UserDeleteUseCase:
         """
         self.repository = repository
 
-    async def execute(self, user_id: str) -> None:
+    async def execute(self, user_id: str, company_id: str) -> None:
         """
         Delete a user based on its id.
 
         :param user_id: Id used to get user.
+        :param company_id: Id of the company the user belongs to.
 
         :return: None.
         """
-        user = await self.repository.find_by_id(user_id)
+        user = await self.repository.find_by_id(user_id, company_id)
 
         if not user:
             raise NotFoundException()
 
-        await self.repository.delete_by_id(user_id)
+        await self.repository.delete_by_id(user_id, company_id)
