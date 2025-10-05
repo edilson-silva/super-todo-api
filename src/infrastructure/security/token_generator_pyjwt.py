@@ -67,8 +67,9 @@ class TokenGeneratorPyJWT(TokenGenerator):
             )
 
             return TokenGeneratorDecodeOutputDTO(
-                user_id=decoded['token_id'],
-                user_role=UserRole[decoded['token_role']],
+                user_id=decoded['sub'],
+                user_role=UserRole(decoded['role']),
+                company_id=decoded['company'],
             )
         except InvalidTokenException:
             raise InvalidTokenException()
