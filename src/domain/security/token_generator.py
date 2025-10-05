@@ -5,12 +5,15 @@ from src.application.dtos.security.token_generator_decode_dto import (
 )
 from src.application.dtos.security.token_generator_encode_dto import (
     TokenGeneratorEncodeInputDTO,
+    TokenGeneratorEncodeOutputDTO,
 )
 
 
 class TokenGenerator(ABC):
     @abstractmethod
-    async def async_encode(self, payload: TokenGeneratorEncodeInputDTO) -> str:
+    async def async_encode(
+        self, payload: TokenGeneratorEncodeInputDTO
+    ) -> TokenGeneratorEncodeOutputDTO:
         """
         Generate a token based on payload.
 

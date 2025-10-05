@@ -53,6 +53,10 @@ class AuthSigninUseCase:
             user_role=user.role,
             company_id=str(user.company_id),
         )
-        token = await self.token_generator.async_encode(token_payload)
+        generated_token = await self.token_generator.async_encode(
+            token_payload
+        )
 
-        return AuthSigninOutputDTO(access_token=token)
+        return AuthSigninOutputDTO(
+            token=generated_token.token, token_type=generated_token.token_type
+        )

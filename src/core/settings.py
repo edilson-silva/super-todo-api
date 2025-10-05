@@ -18,6 +18,9 @@ class Settings(BaseSettings):
         default='HS256', env='ACCESS_TOKEN_ALGORITHM'
     )
     ACCESS_TOKEN_SECRET_KEY: str = Field(..., env='ACCESS_TOKEN_SECRET_KEY')
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = Field(
+        default=30, env='ACCESS_TOKEN_EXPIRE_MINUTES'
+    )
 
     @field_validator('DATABASE_URL')
     @classmethod
