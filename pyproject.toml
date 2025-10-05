@@ -14,6 +14,7 @@ dependencies = [
     "pytest-asyncio>=1.1.0",
     "python-dotenv>=1.1.1",
     "sqlalchemy[asyncio]>=2.0.43",
+    "tzdata>=2025.2",
     "uuid7>=0.1.0",
 ]
 
