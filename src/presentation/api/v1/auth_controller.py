@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status
 
 from src.application.dtos.auth.auth_signin_dto import (
     AuthSigninInputDTO,
@@ -14,6 +14,9 @@ from src.domain.exceptions.company_exceptions import (
 )
 from src.domain.exceptions.exceptions import NotFoundException
 from src.domain.exceptions.user_exceptions import UserAlreadyExistsException
+from src.presentation.security.simple_oauth2_password_request_form import (
+    SimpleOAuth2PasswordRequestForm,
+)
 
 router = APIRouter(prefix='/auth', tags=['auth'])
 
@@ -47,15 +50,21 @@ async def signup(
     status_code=status.HTTP_200_OK,
 )
 async def signin(
-    input_dto: AuthSigninInputDTO,
+    form_data: SimpleOAuth2PasswordRequestForm = Depends(),
     use_case: AuthSigninUseCase = AuthSigninUseCaseDep,
 ) -> AuthSigninOutputDTO:
     """
     Perform signin for a user based on email and password.
 
-    :return: User info
+    :param form_data: OAuth2 form data with username and password.
+
+    :return: Access token.
     """
     try:
+        input_dto = AuthSigninInputDTO(
+            email=form_data.username,
+            password=form_data.password,
+        )
         return await use_case.execute(input_dto)
     except (NotFoundException, InvalidCredentialsException):
         raise HTTPException(
