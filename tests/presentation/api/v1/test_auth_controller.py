@@ -2,6 +2,8 @@ import pytest
 from fastapi import status
 from httpx import AsyncClient
 
+from src.core.settings import settings
+
 
 @pytest.fixture(scope='class')
 def signup_user_info():
@@ -83,22 +85,22 @@ class TestAuthSigninController:
     async def test_missing_request_params_should_return_unprocessable_error(
         self, client: AsyncClient
     ):
-        response = await client.post('/auth/signin', json={})
+        response = await client.post('/auth/signin', data={})
 
         assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
         assert response.json() == {
             'detail': [
                 {
                     'type': 'missing',
-                    'loc': ['body', 'email'],
+                    'loc': ['query', 'email'],
                     'msg': 'Field required',
-                    'input': {},
+                    'input': None,
                 },
                 {
                     'type': 'missing',
-                    'loc': ['body', 'password'],
+                    'loc': ['query', 'password'],
                     'msg': 'Field required',
-                    'input': {},
+                    'input': None,
                 },
             ]
         }
@@ -113,26 +115,30 @@ class TestAuthSigninController:
             '/auth/signup', json=signup_user_info
         )
 
+        print('SI:', signin_user_info)
+
         assert signup_response.status_code == status.HTTP_201_CREATED
 
         signin_response = await client.post(
-            '/auth/signin', json=signin_user_info
+            '/auth/signin', data=signin_user_info
         )
 
         assert signin_response.status_code == status.HTTP_200_OK
 
         access_token = signin_response.json().get('access_token')
 
-        assert isinstance(access_token, str)
-        assert access_token.startswith('Bearer ey')
+        assert isinstance(access_token, dict)
+        assert access_token != {}
+        assert 'token' in access_token
+        assert 'token_type' in access_token
+        assert access_token['token'] != ''
+        assert access_token['token_type'] == settings.ACCESS_TOKEN_TYPE
 
     async def test_invalid_user_credentials_should_return_unauthorized_error(
         self,
         client: AsyncClient,
-        signup_user_info: dict,
-        signin_user_info: dict,
     ):
-        response = await client.post('/auth/signin', json=signin_user_info)
+        response = await client.post('/auth/signin', data=signin_user_info)
 
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
         assert response.json() == {'detail': 'Unauthorized'}
