@@ -51,11 +51,10 @@ class TestAuthSigninUsecase:
         response = await signin_usecase.execute(signin_dto)
 
         assert isinstance(response, AuthSigninOutputDTO)
-
-        token_type, token_value = response.access_token.split()
-
-        assert token_type == settings.ACCESS_TOKEN_TYPE
-        assert token_type != ''
+        assert isinstance(response.token, str)
+        assert response.token != ''
+        assert isinstance(response.token_type, str)
+        assert response.token_type == settings.ACCESS_TOKEN_TYPE
 
     async def test_invalid_credentials_should_raise_exception(
         self,
