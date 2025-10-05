@@ -92,13 +92,13 @@ class TestAuthSigninController:
             'detail': [
                 {
                     'type': 'missing',
-                    'loc': ['query', 'email'],
+                    'loc': ['body', 'email'],
                     'msg': 'Field required',
                     'input': None,
                 },
                 {
                     'type': 'missing',
-                    'loc': ['query', 'password'],
+                    'loc': ['body', 'password'],
                     'msg': 'Field required',
                     'input': None,
                 },
@@ -115,8 +115,6 @@ class TestAuthSigninController:
             '/auth/signup', json=signup_user_info
         )
 
-        print('SI:', signin_user_info)
-
         assert signup_response.status_code == status.HTTP_201_CREATED
 
         signin_response = await client.post(
@@ -125,7 +123,7 @@ class TestAuthSigninController:
 
         assert signin_response.status_code == status.HTTP_200_OK
 
-        access_token = signin_response.json().get('access_token')
+        access_token = signin_response.json()
 
         assert isinstance(access_token, dict)
         assert access_token != {}
@@ -138,7 +136,10 @@ class TestAuthSigninController:
         self,
         client: AsyncClient,
     ):
-        response = await client.post('/auth/signin', data=signin_user_info)
+        response = await client.post(
+            '/auth/signin',
+            data={'email': 'wrong@email.com', 'password': 'wrong_password'},
+        )
 
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
         assert response.json() == {'detail': 'Unauthorized'}
