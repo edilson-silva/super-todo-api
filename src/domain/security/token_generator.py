@@ -26,12 +26,12 @@ class TokenGenerator(ABC):
     @abstractmethod
     async def async_decode(
         self, access_token: str
-    ) -> TokenGeneratorDecodeOutputDTO:
+    ) -> TokenGeneratorDecodeOutputDTO | None:
         """
         Decode an access_token.
 
         :param access_token: The access token to be decoded.
 
-        :return: The token payload.
+        :return: The token payload if valid or None otherwise.
         """
         pass
