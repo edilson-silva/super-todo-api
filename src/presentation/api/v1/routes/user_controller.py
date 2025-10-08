@@ -23,6 +23,7 @@ from src.application.usecases.user.user_update_partial_usecase import (
 )
 from src.application.usecases.user.user_update_usecase import UserUpdateUseCase
 from src.core.container import (
+    GetLoggedUserUtilDep,
     UserCreateUseCaseDep,
     UserDeleteUseCaseDep,
     UserGetUseCaseDep,
@@ -30,6 +31,7 @@ from src.core.container import (
     UserUpdatePartialUseCaseDep,
     UserUpdateUseCaseDep,
 )
+from src.domain.exceptions.auth_exceptions import InvalidTokenException
 
 router = APIRouter(prefix='/users', tags=['users'])
 
@@ -42,6 +44,7 @@ router = APIRouter(prefix='/users', tags=['users'])
 async def user_create(
     user: UserCreateInputDTO,
     use_case: UserCreateUseCase = UserCreateUseCaseDep,
+    current_logged_user=GetLoggedUserUtilDep,
 ):
     """
     Create a new user.
@@ -52,8 +55,12 @@ async def user_create(
     Returns the created user.
     """
     try:
-        created_user = await use_case.execute(user)
+        created_user = await use_case.execute(
+            current_logged_user.company_id, user
+        )
         return created_user
+    except InvalidTokenException:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED)
     except Exception:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST)
 
@@ -75,6 +82,7 @@ async def user_get(
     :return: Found user info.
     """
     try:
+        # Decode token and get company id
         user = await use_case.execute(user_id)
         return user
     except Exception:
@@ -98,6 +106,7 @@ async def user_list(
     :param offset: Number of users ignored in the search.
     :return: List of users.
     """
+    # Decode token and get company id
     users = await use_case.execute(limit, offset)
     return users
 
@@ -117,6 +126,7 @@ async def user_delete(
     :param user_id: Id used to delete user.
     """
     try:
+        # Decode token and get company id
         return await use_case.execute(user_id)
     except Exception:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
@@ -142,6 +152,7 @@ async def user_update(
     Returns the updated user.
     """
     try:
+        # Decode token and get company id
         updated_user = await use_case.execute(user_id, data)
         return updated_user
     except Exception:
@@ -168,6 +179,7 @@ async def user_update_partial(
     Returns the updated user.
     """
     try:
+        # Decode token and get company id
         updated_user = await use_case.execute(user_id, data)
         return updated_user
     except Exception:

@@ -17,3 +17,12 @@ class InvalidTokenException(DomainException):
 
     def __init__(self):
         super().__init__(self.message)
+
+
+class UnauthorizedException(DomainException):
+    """Raised when a user is not authorized to access a resource."""
+
+    message = 'Unauthorized'
+
+    def __init__(self):
+        super().__init__(self.message)

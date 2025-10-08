@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.security import OAuth2PasswordRequestForm
 
 from src.application.dtos.auth.auth_signin_dto import (
     AuthSigninInputDTO,
@@ -14,9 +15,6 @@ from src.domain.exceptions.company_exceptions import (
 )
 from src.domain.exceptions.exceptions import NotFoundException
 from src.domain.exceptions.user_exceptions import UserAlreadyExistsException
-from src.presentation.security.simple_oauth2_password_request_form import (
-    SimpleOAuth2PasswordRequestForm,
-)
 
 router = APIRouter(prefix='/auth', tags=['auth'])
 
@@ -50,7 +48,7 @@ async def signup(
     status_code=status.HTTP_200_OK,
 )
 async def signin(
-    form_data: SimpleOAuth2PasswordRequestForm = Depends(),
+    form_data: OAuth2PasswordRequestForm = Depends(),
     use_case: AuthSigninUseCase = AuthSigninUseCaseDep,
 ) -> AuthSigninOutputDTO:
     """

@@ -13,6 +13,7 @@ from src.application.usecases.user.user_update_partial_usecase import (
     UserUpdatePartialUseCase,
 )
 from src.application.usecases.user.user_update_usecase import UserUpdateUseCase
+from src.domain.entities.user_entity import User
 from src.domain.repositories.company_repository import CompanyRepository
 from src.domain.repositories.user_repository import UserRepository
 from src.domain.security.password_hasher import PasswordHasher
@@ -29,6 +30,10 @@ from src.infrastructure.security.password_hasher_bcrypt import (
 )
 from src.infrastructure.security.token_generator_pyjwt import (
     TokenGeneratorPyJWT,
+)
+from src.presentation.api.v1.security.token_handler import (
+    get_logged_user_from_token,
+    oauth2_scheme,
 )
 
 
@@ -105,6 +110,7 @@ def get_auth_signin_use_case(
 
     :param repository: UserRepository dependency.
     :param password_hasher: PasswordHasher dependency.
+    :param token_generator: TokenGenerator dependency.
 
     :return: An instance of AuthSigninUseCase.
     """
@@ -195,6 +201,25 @@ def get_user_update_partial_use_case(
     return UserUpdatePartialUseCase(repository, password_hasher)
 
 
+async def get_logged_user_from_token_handler(
+    token: str = Depends(oauth2_scheme),
+    token_generator: TokenGenerator = Depends(get_token_generator),
+    user_repository: UserRepository = Depends(get_user_repository),
+) -> User | None:
+    """
+    Dependency to get the logged user util.
+
+    :param token: JWT token from the request header.
+    :param token_generator: TokenGenerator instance (injected dependency).
+    :param user_repository: UserRepository instance (injected dependency).
+
+    :return: The logged user.
+    """
+    return await get_logged_user_from_token(
+        token, token_generator, user_repository
+    )
+
+
 AuthSignupUseCaseDep = Depends(get_auth_signup_use_case)
 AuthSigninUseCaseDep = Depends(get_auth_signin_use_case)
 UserCreateUseCaseDep = Depends(get_user_create_use_case)
@@ -203,3 +228,4 @@ UserListUseCaseDep = Depends(get_user_list_use_case)
 UserDeleteUseCaseDep = Depends(get_user_delete_use_case)
 UserUpdateUseCaseDep = Depends(get_user_update_use_case)
 UserUpdatePartialUseCaseDep = Depends(get_user_update_partial_use_case)
+GetLoggedUserUtilDep = Depends(get_logged_user_from_token_handler)

@@ -58,5 +58,6 @@ class AuthSigninUseCase:
         )
 
         return AuthSigninOutputDTO(
-            token=generated_token.token, token_type=generated_token.token_type
+            access_token=generated_token.access_token,
+            token_type=generated_token.token_type,
         )

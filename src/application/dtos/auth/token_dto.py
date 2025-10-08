@@ -2,5 +2,5 @@ from pydantic import BaseModel
 
 
 class TokenDTO(BaseModel):
-    token: str
+    access_token: str
     token_type: str = 'Bearer'

@@ -48,7 +48,7 @@ class TokenGeneratorPyJWT(TokenGenerator):
             algorithm=self.algorithm,
         )
         return TokenGeneratorEncodeOutputDTO(
-            token=token, token_type=self.token_type
+            access_token=token, token_type=self.token_type
         )
 
     async def async_decode(
