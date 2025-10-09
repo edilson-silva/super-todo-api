@@ -6,7 +6,8 @@ from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 
-from src.domain.entities.user_entity import UserRole
+from src.domain.entities.company_entity import Company
+from src.domain.entities.user_entity import User, UserRole
 from src.domain.repositories.company_repository import CompanyRepository
 from src.domain.repositories.user_repository import UserRepository
 from src.domain.security.password_hasher import PasswordHasher
@@ -25,16 +26,6 @@ from src.infrastructure.security.token_generator_pyjwt import (
     TokenGeneratorPyJWT,
 )
 from src.main import app
-
-
-@pytest.fixture
-def sample_user_info() -> dict:
-    return {
-        'name': 'Test User',
-        'email': 'test@example.com',
-        'password': '123456789',
-        'role': UserRole.ADMIN,
-    }
 
 
 @pytest.fixture
@@ -81,6 +72,53 @@ async def company_repository(
 @pytest.fixture
 def token_generator() -> TokenGenerator:
     return TokenGeneratorPyJWT()
+
+
+@pytest.fixture
+def admin_user_info():
+    return {
+        'name': 'Test1',
+        'email': 'test1@example.com',
+        'password': '123456789',
+        'role': UserRole.ADMIN,
+    }
+
+
+@pytest.fixture
+def basic_user_info():
+    return {
+        'name': 'Test2',
+        'email': 'test2@example.com',
+        'password': '123456789',
+        'role': UserRole.USER,
+    }
+
+
+@pytest.fixture
+async def admin_user(
+    user_repository: UserRepository,
+    company_repository: CompanyRepository,
+    password_hasher: PasswordHasher,
+    admin_user_info: dict,
+) -> User:
+    company = Company(name='Test Company')
+    company = await company_repository.create(company)
+
+    user_password_hashed = await password_hasher.async_hash(
+        admin_user_info['password']
+    )
+
+    user = User(
+        name=admin_user_info['name'],
+        email=admin_user_info['email'],
+        password=user_password_hashed,
+        role=admin_user_info['role'],
+        company_id=str(company.id),
+    )
+
+    user = await user_repository.create(user)
+
+    return user
 
 
 @pytest.fixture
