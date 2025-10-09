@@ -122,6 +122,33 @@ async def admin_user(
 
 
 @pytest.fixture
+async def basic_user(
+    user_repository: UserRepository,
+    company_repository: CompanyRepository,
+    password_hasher: PasswordHasher,
+    basic_user_info: dict,
+) -> User:
+    company = Company(name='Test Company')
+    company = await company_repository.create(company)
+
+    user_password_hashed = await password_hasher.async_hash(
+        basic_user_info['password']
+    )
+
+    user = User(
+        name=basic_user_info['name'],
+        email=basic_user_info['email'],
+        password=user_password_hashed,
+        role=basic_user_info['role'],
+        company_id=str(company.id),
+    )
+
+    user = await user_repository.create(user)
+
+    return user
+
+
+@pytest.fixture
 async def client(get_db_session) -> AsyncGenerator[AsyncClient, None]:
     def override_get_db_session():
         yield get_db_session
