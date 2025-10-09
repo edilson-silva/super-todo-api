@@ -32,7 +32,7 @@ from src.infrastructure.security.token_generator_pyjwt import (
     TokenGeneratorPyJWT,
 )
 from src.presentation.api.v1.security.token_handler import (
-    get_logged_user_from_token,
+    get_requester_from_token,
     oauth2_scheme,
 )
 
@@ -201,21 +201,21 @@ def get_user_update_partial_use_case(
     return UserUpdatePartialUseCase(repository, password_hasher)
 
 
-async def get_logged_user_from_token_handler(
+async def get_requester_from_token_handler(
     token: str = Depends(oauth2_scheme),
     token_generator: TokenGenerator = Depends(get_token_generator),
     user_repository: UserRepository = Depends(get_user_repository),
 ) -> User | None:
     """
-    Dependency to get the logged user util.
+    Dependency to get requester (logged user) based on the token helper.
 
-    :param token: JWT token from the request header.
-    :param token_generator: TokenGenerator instance (injected dependency).
-    :param user_repository: UserRepository instance (injected dependency).
+    :param token: JWT token extracted from the request header.
+    :param token_generator: TokenGenerator dependency.
+    :param user_repository: UserRepository dependency.
 
-    :return: The logged user.
+    :return: The requester (logged user).
     """
-    return await get_logged_user_from_token(
+    return await get_requester_from_token(
         token, token_generator, user_repository
     )
 
@@ -228,4 +228,4 @@ UserListUseCaseDep = Depends(get_user_list_use_case)
 UserDeleteUseCaseDep = Depends(get_user_delete_use_case)
 UserUpdateUseCaseDep = Depends(get_user_update_use_case)
 UserUpdatePartialUseCaseDep = Depends(get_user_update_partial_use_case)
-GetLoggedUserUtilDep = Depends(get_logged_user_from_token_handler)
+GetRequesterFromTokenDep = Depends(get_requester_from_token_handler)

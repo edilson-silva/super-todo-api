@@ -23,7 +23,7 @@ from src.application.usecases.user.user_update_partial_usecase import (
 )
 from src.application.usecases.user.user_update_usecase import UserUpdateUseCase
 from src.core.container import (
-    GetLoggedUserUtilDep,
+    GetRequesterFromTokenDep,
     UserCreateUseCaseDep,
     UserDeleteUseCaseDep,
     UserGetUseCaseDep,
@@ -31,7 +31,7 @@ from src.core.container import (
     UserUpdatePartialUseCaseDep,
     UserUpdateUseCaseDep,
 )
-from src.domain.exceptions.auth_exceptions import InvalidTokenException
+from src.domain.entities.user_entity import User
 
 router = APIRouter(prefix='/users', tags=['users'])
 
@@ -43,8 +43,8 @@ router = APIRouter(prefix='/users', tags=['users'])
 )
 async def user_create(
     user: UserCreateInputDTO,
+    requester: User = GetRequesterFromTokenDep,
     use_case: UserCreateUseCase = UserCreateUseCaseDep,
-    current_logged_user=GetLoggedUserUtilDep,
 ):
     """
     Create a new user.
@@ -54,15 +54,7 @@ async def user_create(
 
     Returns the created user.
     """
-    try:
-        created_user = await use_case.execute(
-            current_logged_user.company_id, user
-        )
-        return created_user
-    except InvalidTokenException:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED)
-    except Exception:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST)
+    return await use_case.execute(requester, user)
 
 
 @router.get(
