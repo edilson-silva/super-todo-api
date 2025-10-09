@@ -169,6 +169,22 @@ async def admin_user_token(
 
 
 @pytest.fixture
+async def basic_user_token(
+    token_generator: TokenGenerator, basic_user: User
+) -> TokenGeneratorEncodeOutputDTO:
+    token_generator_encode_input_dto = TokenGeneratorEncodeInputDTO(
+        user_id=str(basic_user.id),
+        user_role=UserRole(basic_user.role),
+        company_id=str(basic_user.company_id),
+    )
+    token = await token_generator.async_encode(
+        token_generator_encode_input_dto
+    )
+
+    return token
+
+
+@pytest.fixture
 async def client(get_db_session) -> AsyncGenerator[AsyncClient, None]:
     def override_get_db_session():
         yield get_db_session
