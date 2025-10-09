@@ -6,6 +6,10 @@ from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 
+from src.application.dtos.security.token_generator_encode_dto import (
+    TokenGeneratorEncodeInputDTO,
+    TokenGeneratorEncodeOutputDTO,
+)
 from src.domain.entities.company_entity import Company
 from src.domain.entities.user_entity import User, UserRole
 from src.domain.repositories.company_repository import CompanyRepository
@@ -146,6 +150,22 @@ async def basic_user(
     user = await user_repository.create(user)
 
     return user
+
+
+@pytest.fixture
+async def admin_user_token(
+    token_generator: TokenGenerator, admin_user: User
+) -> TokenGeneratorEncodeOutputDTO:
+    token_generator_encode_input_dto = TokenGeneratorEncodeInputDTO(
+        user_id=str(admin_user.id),
+        user_role=UserRole(admin_user.role),
+        company_id=str(admin_user.company_id),
+    )
+    token = await token_generator.async_encode(
+        token_generator_encode_input_dto
+    )
+
+    return token
 
 
 @pytest.fixture
