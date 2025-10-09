@@ -51,8 +51,8 @@ class TestAuthSigninUsecase:
         response = await signin_usecase.execute(signin_dto)
 
         assert isinstance(response, AuthSigninOutputDTO)
-        assert isinstance(response.token, str)
-        assert response.token != ''
+        assert isinstance(response.access_token, str)
+        assert response.access_token != ''
         assert isinstance(response.token_type, str)
         assert response.token_type == settings.ACCESS_TOKEN_TYPE
 
