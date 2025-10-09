@@ -32,10 +32,12 @@ class TestTokenGeneratorPyJWT:
         )
 
         assert isinstance(encoded_token, TokenGeneratorEncodeOutputDTO)
-        assert encoded_token.token != ''
+        assert encoded_token.access_token != ''
         assert encoded_token.token_type == settings.ACCESS_TOKEN_TYPE
 
-        decoded_token = await token_generator.async_decode(encoded_token.token)
+        decoded_token = await token_generator.async_decode(
+            encoded_token.access_token
+        )
 
         assert isinstance(decoded_token, TokenGeneratorDecodeOutputDTO)
         assert decoded_token.user_id == token_data['user_id']
