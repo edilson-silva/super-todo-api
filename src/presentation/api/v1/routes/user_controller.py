@@ -89,6 +89,7 @@ async def user_get(
 async def user_list(
     limit: int = Query(10, ge=1, le=100),
     offset: int = Query(0),
+    requester: User = GetRequesterFromTokenDep,
     use_case: UserListUseCase = UserListUseCaseDep,
 ):
     """
@@ -99,8 +100,7 @@ async def user_list(
     :return: List of users.
     """
     # Decode token and get company id
-    users = await use_case.execute(limit, offset)
-    return users
+    return await use_case.execute(requester, limit, offset)
 
 
 @router.delete(
