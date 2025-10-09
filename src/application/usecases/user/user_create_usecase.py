@@ -3,6 +3,8 @@ from src.application.dtos.user.user_create_dto import (
     UserCreateOutputDTO,
 )
 from src.domain.entities.user_entity import User
+from src.domain.entities.user_role import UserRole
+from src.domain.exceptions.auth_exceptions import UnauthorizedException
 from src.domain.exceptions.user_exceptions import UserAlreadyExistsException
 from src.domain.repositories.user_repository import UserRepository
 from src.domain.security.password_hasher import PasswordHasher
@@ -20,16 +22,19 @@ class UserCreateUseCase:
         self.password_hasher = password_hasher
 
     async def execute(
-        self, company_id: str, data: UserCreateInputDTO
+        self, requester: User, data: UserCreateInputDTO
     ) -> UserCreateOutputDTO:
         """
         Create a new user and store it in the repository.
 
-        :company_id: ID of the company the user belongs to.
+        :requester: User trying to perform the action (must be an admin).
         :param data: User creation data.
 
         :return: The created User entity.
         """
+        if requester.role != UserRole.ADMIN:
+            raise UnauthorizedException()
+
         user = await self.repository.find_by_email(data.email)
 
         if user:
@@ -43,7 +48,7 @@ class UserCreateUseCase:
             password=hashed_password,
             role=data.role,
             avatar=data.avatar,
-            company_id=company_id,
+            company_id=requester.company_id,
         )
 
         created_user: User = await self.repository.create(user)
