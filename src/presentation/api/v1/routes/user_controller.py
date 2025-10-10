@@ -60,21 +60,14 @@ async def user_create(
 )
 async def user_get(
     user_id: str,
+    requester: User = GetRequesterFromTokenDep,
     use_case: UserGetUseCase = UserGetUseCaseDep,
 ):
     """
-    Get a user based on its id.
-
-    :param user_id: Id used to get user.
-
-    :return: Found user info.
+    To get a user, the requester must be from the same company.\n
+    Return user info.
     """
-    try:
-        # Decode token and get company id
-        user = await use_case.execute(user_id)
-        return user
-    except Exception:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+    return await use_case.execute(requester, user_id)
 
 
 @router.get(
