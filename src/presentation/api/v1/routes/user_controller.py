@@ -47,11 +47,7 @@ async def user_create(
     use_case: UserCreateUseCase = UserCreateUseCaseDep,
 ):
     """
-    Create a new user.
-
-    :param user: User creation data.
-    :param use_case: UserCreateUseCase instance (injected dependency).
-
+    To create a user, the requester must be admin.\n
     Returns the created user.
     """
     return await use_case.execute(requester, user)
@@ -93,13 +89,9 @@ async def user_list(
     use_case: UserListUseCase = UserListUseCaseDep,
 ):
     """
-    Get the list of users.
-
-    :param limit: Maximum number of users returned.
-    :param offset: Number of users ignored in the search.
-    :return: List of users.
+    To list users, the requester must be admin.\n
+    Returns the list of found users.
     """
-    # Decode token and get company id
     return await use_case.execute(requester, limit, offset)
 
 
@@ -115,6 +107,7 @@ async def user_delete(
     """
     Delete a user based on its id.
 
+    :param requester:
     :param user_id: Id used to delete user.
     """
     try:

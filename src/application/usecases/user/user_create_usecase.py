@@ -27,7 +27,7 @@ class UserCreateUseCase:
         """
         Create a new user and store it in the repository.
 
-        :requester: User trying to perform the action (must be an admin).
+        :param requester: User trying to perform the action (must be an admin).
         :param data: User creation data.
 
         :return: The created User entity.

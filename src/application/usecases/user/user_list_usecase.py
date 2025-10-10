@@ -19,7 +19,7 @@ class UserListUseCase:
         """
         Get the list of users.
 
-        :requester: User trying to perform the action (must be an admin).
+        :param requester: User trying to perform the action (must be an admin).
         :param limit: Maximum number of users returned.
         :param offset: Number of users ignored in the search.
 
