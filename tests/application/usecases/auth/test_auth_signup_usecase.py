@@ -1,4 +1,5 @@
 from datetime import datetime
+from unittest.mock import patch
 
 import pytest
 
@@ -9,10 +10,14 @@ from src.domain.entities.user_role import UserRole
 from src.domain.exceptions.company_exceptions import (
     CompanyAlreadyRegisteredException,
 )
+from src.domain.exceptions.exceptions import CannotOperateException
 from src.domain.exceptions.user_exceptions import UserAlreadyExistsException
 from src.domain.repositories.company_repository import CompanyRepository
 from src.domain.repositories.user_repository import UserRepository
 from src.domain.security.password_hasher import PasswordHasher
+from src.infrastructure.repositories.company_repository_sqlalchemy import (
+    CompanyRepositorySQLAlchemy,
+)
 
 
 @pytest.mark.asyncio
@@ -94,3 +99,28 @@ class TestAuthSignupUsecase:
             await signup_usecase.execute(signup_dto)
 
         assert str(exc.value) == 'Company already registered'
+
+    async def test_company_register_error_should_raise_exception(
+        self,
+        user_repository: UserRepository,
+        company_repository: CompanyRepository,
+        password_hasher: PasswordHasher,
+        admin_user_info: dict,
+    ):
+        with patch.object(
+            CompanyRepositorySQLAlchemy, 'create', return_value=None
+        ):
+            signup_dto = AuthSignupInputDTO(
+                company_name=admin_user_info['company_name'],
+                name=admin_user_info['name'],
+                email=admin_user_info['email'],
+                password=admin_user_info['password'],
+            )
+            signup_usecase = AuthSignupUseCase(
+                user_repository, company_repository, password_hasher
+            )
+
+            with pytest.raises(CannotOperateException) as exc:
+                await signup_usecase.execute(signup_dto)
+
+            assert str(exc.value) == 'Cannot operate: Try again later'
