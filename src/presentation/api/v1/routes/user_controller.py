@@ -113,23 +113,14 @@ async def user_delete(
 async def user_update(
     user_id: str,
     data: UserUpdateInputDTO,
+    requester: User = GetRequesterFromTokenDep,
     use_case: UserUpdateUseCase = UserUpdateUseCaseDep,
 ):
     """
-    Update a user based on its id.
-
-    :param user_id: Id used to delete user.
-    :param data: User update data.
-    :param use_case: UserUpdateUseCase instance (injected dependency).
-
-    Returns the updated user.
+    To update a user, the requester must be admin or the own user.\n
+    Returns the updated user info.
     """
-    try:
-        # Decode token and get company id
-        updated_user = await use_case.execute(user_id, data)
-        return updated_user
-    except Exception:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+    return await use_case.execute(requester, user_id, data)
 
 
 @router.patch(
