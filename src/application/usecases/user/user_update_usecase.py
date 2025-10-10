@@ -42,7 +42,9 @@ class UserUpdateUseCase:
         if not user:
             raise NotFoundException()
 
-        if user.role != UserRole.ADMIN and str(user.id) != str(requester.id):
+        if requester.role != UserRole.ADMIN and str(user.id) != str(
+            requester.id
+        ):
             raise UnauthorizedException(
                 "You don't have enough permission to perform this action."
             )
