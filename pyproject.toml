@@ -50,6 +50,9 @@ fixable = ["ALL"] # Allows Ruff to remove unused imports automatically.
 quote-style = "single"
 docstring-code-format = true
 
+[tool.ruff.lint.pylint]
+max-args = 6
+
 [tool.pytest.ini_options]
 pythonpath = "."
 addopts = "-p no:warnings"
