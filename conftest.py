@@ -81,20 +81,22 @@ def token_generator() -> TokenGenerator:
 @pytest.fixture
 def admin_user_info():
     return {
-        'name': 'Test1',
-        'email': 'test1@example.com',
+        'name': 'admin',
+        'email': 'admin@example.com',
         'password': '123456789',
         'role': UserRole.ADMIN,
+        'company_name': 'company',
     }
 
 
 @pytest.fixture
 def basic_user_info():
     return {
-        'name': 'Test2',
-        'email': 'test2@example.com',
+        'name': 'basic',
+        'email': 'basic@example.com',
         'password': '123456789',
         'role': UserRole.USER,
+        'company_name': 'company',
     }
 
 
