@@ -24,5 +24,5 @@ class UnauthorizedException(DomainException):
 
     message = 'Unauthorized'
 
-    def __init__(self):
-        super().__init__(self.message)
+    def __init__(self, msg=''):
+        super().__init__(msg or self.message)
