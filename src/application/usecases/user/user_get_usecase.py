@@ -1,4 +1,5 @@
 from src.application.dtos.user.user_get_dto import UserGetOutputDTO
+from src.domain.entities.user_entity import User
 from src.domain.exceptions.exceptions import NotFoundException
 from src.domain.repositories.user_repository import UserRepository
 
@@ -10,16 +11,16 @@ class UserGetUseCase:
         """
         self.repository = repository
 
-    async def execute(self, user_id: str, company_id: str) -> UserGetOutputDTO:
+    async def execute(self, requester: User, user_id: str) -> UserGetOutputDTO:
         """
         Get a user based on its id.
 
-        :param user_id: Id used to get user.
-        :param company_id: Id of the company the user belongs to.
+        :param requester: Must be a user from the same content.
+        :param user_id: Id of user to be found.
 
         :return: Found user info.
         """
-        user = await self.repository.find_by_id(user_id, company_id)
+        user = await self.repository.find_by_id(user_id, requester.company_id)
 
         if not user:
             raise NotFoundException()
