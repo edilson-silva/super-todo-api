@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Query, status
+from fastapi import APIRouter, Query, status
 
 from src.application.dtos.user.user_create_dto import (
     UserCreateInputDTO,
@@ -131,20 +131,11 @@ async def user_update(
 async def user_update_partial(
     user_id: str,
     data: UserUpdatePartialInputDTO,
+    requester: User = GetRequesterFromTokenDep,
     use_case: UserUpdatePartialUseCase = UserUpdatePartialUseCaseDep,
 ):
     """
-    Update a user based on its id.
-
-    :param user_id: Id used to delete user.
-    :param data: User update data.
-    :param use_case: UserUpdatePartialUseCase instance (injected dependency).
-
-    Returns the updated user.
+    To update a user partially, the requester must be admin or the own user.\n
+    Returns the updated user info.
     """
-    try:
-        # Decode token and get company id
-        updated_user = await use_case.execute(user_id, data)
-        return updated_user
-    except Exception:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+    return await use_case.execute(requester, user_id, data)
