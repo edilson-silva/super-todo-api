@@ -3,7 +3,7 @@ from src.domain.entities.company_entity import Company
 from src.domain.entities.user_entity import User
 from src.domain.entities.user_role import UserRole
 from src.domain.exceptions.company_exceptions import (
-    CompanyAlreadyExistsException,
+    CompanyAlreadyRegisteredException,
 )
 from src.domain.exceptions.exceptions import CannotOperateException
 from src.domain.exceptions.user_exceptions import UserAlreadyExistsException
@@ -41,10 +41,14 @@ class AuthSignupUseCase:
         if user:
             raise UserAlreadyExistsException()
 
+        print('company name:', data.company_name)
+
         company = await self.company_repo.find_by_name(data.company_name)
 
+        print('COMPANY', company)
+
         if company:
-            raise CompanyAlreadyExistsException()
+            raise CompanyAlreadyRegisteredException()
 
         company = Company(data.company_name)
         created_company: Company | None = await self.company_repo.create(
