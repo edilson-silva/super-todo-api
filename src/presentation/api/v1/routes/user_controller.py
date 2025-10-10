@@ -102,19 +102,14 @@ async def user_list(
 )
 async def user_delete(
     user_id: str,
+    requester: User = GetRequesterFromTokenDep,
     use_case: UserDeleteUseCase = UserDeleteUseCaseDep,
 ):
     """
-    Delete a user based on its id.
-
-    :param requester:
-    :param user_id: Id used to delete user.
+    To delete a user, the requester must be admin.\n
+    Returns nothing.
     """
-    try:
-        # Decode token and get company id
-        return await use_case.execute(user_id)
-    except Exception:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+    return await use_case.execute(requester, user_id)
 
 
 @router.put(
