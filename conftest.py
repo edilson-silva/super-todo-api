@@ -85,7 +85,7 @@ def admin_user_info():
         'email': 'admin@example.com',
         'password': '123456789',
         'role': UserRole.ADMIN,
-        'company_name': 'company',
+        'company_name': 'Admin Company',
     }
 
 
@@ -96,7 +96,7 @@ def basic_user_info():
         'email': 'basic@example.com',
         'password': '123456789',
         'role': UserRole.USER,
-        'company_name': 'company',
+        'company_name': 'Basic Company',
     }
 
 
@@ -107,7 +107,7 @@ async def admin_user(
     password_hasher: PasswordHasher,
     admin_user_info: dict,
 ) -> User:
-    company = Company(name='Test Company')
+    company = Company(admin_user_info['company_name'])
     company = await company_repository.create(company)
 
     user_password_hashed = await password_hasher.async_hash(
@@ -134,7 +134,7 @@ async def basic_user(
     password_hasher: PasswordHasher,
     basic_user_info: dict,
 ) -> User:
-    company = Company(name='Test Company')
+    company = Company(basic_user_info['company_name'])
     company = await company_repository.create(company)
 
     user_password_hashed = await password_hasher.async_hash(

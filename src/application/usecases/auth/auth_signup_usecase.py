@@ -41,11 +41,7 @@ class AuthSignupUseCase:
         if user:
             raise UserAlreadyExistsException()
 
-        print('company name:', data.company_name)
-
         company = await self.company_repo.find_by_name(data.company_name)
-
-        print('COMPANY', company)
 
         if company:
             raise CompanyAlreadyRegisteredException()
