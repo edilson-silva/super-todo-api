@@ -8,6 +8,7 @@ from src.application.dtos.user.user_output_dto import UserOutputDTO
 from src.application.usecases.user.user_list_usecase import UserListUseCase
 from src.domain.entities.user_entity import User
 from src.domain.entities.user_role import UserRole
+from src.domain.exceptions.auth_exceptions import UnauthorizedException
 from src.domain.repositories.user_repository import UserRepository
 
 
@@ -68,3 +69,14 @@ class TestUserListUsecase:
             assert user.role == user_expected.role
             assert isinstance(user.created_at, datetime)
             assert isinstance(user.updated_at, datetime)
+
+    async def test_non_admin_requester_should_raise_exception(
+        self, basic_user_info: dict
+    ):
+        requester = self.users[1]
+        usecase = self.usecase
+
+        with pytest.raises(UnauthorizedException) as exc:
+            await usecase.execute(requester, 10, 0)
+
+        assert str(exc.value) == 'Unauthorized'
