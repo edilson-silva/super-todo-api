@@ -1,5 +1,6 @@
 from collections.abc import AsyncGenerator
 from datetime import datetime
+from typing import List
 
 import pytest
 from httpx import ASGITransport, AsyncClient
@@ -82,7 +83,7 @@ def token_generator() -> TokenGenerator:
 def admin_user_info():
     return {
         'name': 'admin',
-        'email': 'admin@example.com',
+        'email': 'admin@admincompany.com',
         'password': '123456789',
         'role': UserRole.ADMIN,
         'company_name': 'Admin Company',
@@ -125,6 +126,40 @@ async def admin_user(
     user = await user_repository.create(user)
 
     return user
+
+
+@pytest.fixture
+async def admin_company_users(
+    user_repository: UserRepository,
+    company_repository: CompanyRepository,
+    password_hasher: PasswordHasher,
+    admin_user: User,
+) -> List[User]:
+    users: List[User] = [admin_user]
+
+    for i in range(5):
+        user_name = 'user'
+        user_email = '{name}{index}@admincompany.com'.format(
+            name=user_name, index=i + 1
+        )
+        user_password = '123456789'
+        user_role = UserRole.USER
+
+        user_password_hashed = await password_hasher.async_hash(user_password)
+
+        user = User(
+            name=user_name,
+            email=user_email,
+            password=user_password_hashed,
+            role=user_role,
+            company_id=admin_user.company_id,
+        )
+
+        user = await user_repository.create(user)
+
+        users.append(user)
+
+    return users
 
 
 @pytest.fixture
