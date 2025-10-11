@@ -1,62 +1,49 @@
 from datetime import datetime
+from typing import List
 
 import pytest
 from uuid_extensions import uuid7str
 
-from src.application.dtos.user.user_create_dto import UserCreateInputDTO
-from src.application.usecases.user.user_create_usecase import UserCreateUseCase
 from src.application.usecases.user.user_get_usecase import UserGetUseCase
+from src.domain.entities.user_entity import User
 from src.domain.exceptions.exceptions import NotFoundException
 from src.domain.repositories.user_repository import UserRepository
-from src.domain.security.password_hasher import PasswordHasher
+
+
+@pytest.fixture(autouse=True)
+def setup(
+    request,
+    admin_company_users: List[User],
+    user_repository: UserRepository,
+):
+    request.cls.users = admin_company_users
+    request.cls.usecase = UserGetUseCase(user_repository)
 
 
 @pytest.mark.asyncio
 class TestUserGetUsecase:
-    company_id = uuid7str()
+    async def test_valid_id_should_return_found_user(self):
+        requester = self.users[0]
+        usecase = self.usecase
+        user_expected: User = self.users[1]
 
-    async def test_valid_id_should_return_found_user(
-        self,
-        user_repository: UserRepository,
-        password_hasher: PasswordHasher,
-    ):
-        user_create_dto = UserCreateInputDTO(
-            name='Test User',
-            email='test@example.com',
-            password='123456789',
-        )
-        user_create_usecase = UserCreateUseCase(
-            user_repository, password_hasher
-        )
+        user_found = await usecase.execute(requester, user_expected.id)
 
-        user_created = await user_create_usecase.execute(
-            self.company_id, user_create_dto
-        )
-
-        user_get_usecase = UserGetUseCase(user_repository)
-
-        user_found = await user_get_usecase.execute(
-            user_created.id, self.company_id
-        )
-
-        assert user_found.id == user_created.id
-        assert user_found.name == user_created.name
-        assert user_found.email == user_created.email
-        assert user_found.role == user_created.role
-        assert user_found.avatar == user_created.avatar
+        assert user_found.id == user_expected.id
+        assert user_found.name == user_expected.name
+        assert user_found.email == user_expected.email
+        assert user_found.role == user_expected.role
+        assert user_found.avatar == user_expected.avatar
         assert isinstance(user_found.created_at, datetime)
-        assert user_found.created_at == user_created.created_at
+        assert user_found.created_at == user_expected.created_at
         assert isinstance(user_found.updated_at, datetime)
-        assert user_found.updated_at == user_created.updated_at
+        assert user_found.updated_at == user_expected.updated_at
 
-    async def test_invalid_id_should_raise_exception(
-        self,
-        user_repository: UserRepository,
-        password_hasher: PasswordHasher,
-    ):
-        user_get_usecase = UserGetUseCase(user_repository)
+    async def test_invalid_id_should_raise_exception(self):
+        requester = self.users[0]
+        usecase = self.usecase
 
         with pytest.raises(NotFoundException) as exc:
-            await user_get_usecase.execute(uuid7str(), self.company_id)
+            await usecase.execute(requester, uuid7str())
 
         assert str(exc.value) == 'Not found'
