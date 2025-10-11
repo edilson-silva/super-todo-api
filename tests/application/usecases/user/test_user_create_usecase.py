@@ -1,4 +1,5 @@
 from datetime import datetime, timezone
+from typing import List
 
 import pytest
 from freezegun import freeze_time
@@ -28,29 +29,38 @@ mock_datetime = datetime(
 )
 
 
+@pytest.fixture(autouse=True)
+def setup(
+    request,
+    admin_company_users: List[User],
+    user_repository: UserRepository,
+    password_hasher: PasswordHasher,
+):
+    request.cls.users = admin_company_users
+    request.cls.usecase = UserCreateUseCase(
+        user_repository,
+        password_hasher,
+    )
+
+
 @pytest.mark.asyncio
 class TestUserCreateUsecase:
     company_id = uuid7str()
 
     @freeze_time(mock_datetime)
     async def test_new_user_info_should_return_created_user(
-        self,
-        user_repository: UserRepository,
-        password_hasher: PasswordHasher,
-        admin_user: User,
-        basic_user_info: dict,
+        self, basic_user_info: dict
     ):
+        requester = self.users[0]
+        usecase = self.usecase
+
         user_create_dto = UserCreateInputDTO(
             name=basic_user_info['name'],
             email=basic_user_info['email'],
             password=basic_user_info['password'],
         )
-        user_create_usecase = UserCreateUseCase(
-            user_repository,
-            password_hasher,
-        )
 
-        user = await user_create_usecase.execute(admin_user, user_create_dto)
+        user = await usecase.execute(requester, user_create_dto)
 
         assert isinstance(user, UserCreateOutputDTO)
 
@@ -66,43 +76,35 @@ class TestUserCreateUsecase:
         assert user.updated_at == mock_datetime
 
     async def test_existing_user_should_raise_exception(
-        self,
-        user_repository: UserRepository,
-        password_hasher: PasswordHasher,
-        admin_user: User,
-        admin_user_info: dict,
+        self, admin_user_info: dict
     ):
+        requester = self.users[0]
+        usecase = self.usecase
+
         user_create_dto = UserCreateInputDTO(
             name=admin_user_info['name'],
             email=admin_user_info['email'],
             password=admin_user_info['password'],
         )
-        user_create_usecase = UserCreateUseCase(
-            user_repository, password_hasher
-        )
 
         with pytest.raises(UserAlreadyExistsException) as exc:
-            await user_create_usecase.execute(admin_user, user_create_dto)
+            await usecase.execute(requester, user_create_dto)
 
         assert str(exc.value) == 'Email already registered'
 
     async def test_non_admin_requester_should_raise_exception(
-        self,
-        user_repository: UserRepository,
-        password_hasher: PasswordHasher,
-        basic_user: User,
-        basic_user_info: dict,
+        self, basic_user_info: dict
     ):
+        requester = self.users[1]
+        usecase = self.usecase
+
         user_create_dto = UserCreateInputDTO(
             name=basic_user_info['name'],
             email=basic_user_info['email'],
             password=basic_user_info['password'],
         )
-        user_create_usecase = UserCreateUseCase(
-            user_repository, password_hasher
-        )
 
         with pytest.raises(UnauthorizedException) as exc:
-            await user_create_usecase.execute(basic_user, user_create_dto)
+            await usecase.execute(requester, user_create_dto)
 
         assert str(exc.value) == 'Unauthorized'
