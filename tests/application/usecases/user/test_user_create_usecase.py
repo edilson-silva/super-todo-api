@@ -11,6 +11,7 @@ from src.application.dtos.user.user_create_dto import (
 from src.application.usecases.user.user_create_usecase import UserCreateUseCase
 from src.domain.entities.user_entity import User
 from src.domain.entities.user_role import UserRole
+from src.domain.exceptions.auth_exceptions import UnauthorizedException
 from src.domain.exceptions.user_exceptions import UserAlreadyExistsException
 from src.domain.repositories.user_repository import UserRepository
 from src.domain.security.password_hasher import PasswordHasher
@@ -84,3 +85,24 @@ class TestUserCreateUsecase:
             await user_create_usecase.execute(admin_user, user_create_dto)
 
         assert str(exc.value) == 'Email already registered'
+
+    async def test_non_admin_requester_should_raise_exception(
+        self,
+        user_repository: UserRepository,
+        password_hasher: PasswordHasher,
+        basic_user: User,
+        basic_user_info: dict,
+    ):
+        user_create_dto = UserCreateInputDTO(
+            name=basic_user_info['name'],
+            email=basic_user_info['email'],
+            password=basic_user_info['password'],
+        )
+        user_create_usecase = UserCreateUseCase(
+            user_repository, password_hasher
+        )
+
+        with pytest.raises(UnauthorizedException) as exc:
+            await user_create_usecase.execute(basic_user, user_create_dto)
+
+        assert str(exc.value) == 'Unauthorized'
