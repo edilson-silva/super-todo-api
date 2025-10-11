@@ -9,6 +9,7 @@ from src.application.dtos.user.user_create_dto import (
     UserCreateOutputDTO,
 )
 from src.application.usecases.user.user_create_usecase import UserCreateUseCase
+from src.domain.entities.user_entity import User
 from src.domain.entities.user_role import UserRole
 from src.domain.exceptions.user_exceptions import UserAlreadyExistsException
 from src.domain.repositories.user_repository import UserRepository
@@ -35,19 +36,20 @@ class TestUserCreateUsecase:
         self,
         user_repository: UserRepository,
         password_hasher: PasswordHasher,
+        admin_user: User,
+        basic_user_info: dict,
     ):
         user_create_dto = UserCreateInputDTO(
-            name='Test User',
-            email='test@example.com',
-            password='123456789',
+            name=basic_user_info['name'],
+            email=basic_user_info['email'],
+            password=basic_user_info['password'],
         )
         user_create_usecase = UserCreateUseCase(
-            user_repository, password_hasher
+            user_repository,
+            password_hasher,
         )
 
-        user = await user_create_usecase.execute(
-            self.company_id, user_create_dto
-        )
+        user = await user_create_usecase.execute(admin_user, user_create_dto)
 
         assert isinstance(user, UserCreateOutputDTO)
 
@@ -66,19 +68,19 @@ class TestUserCreateUsecase:
         self,
         user_repository: UserRepository,
         password_hasher: PasswordHasher,
+        admin_user: User,
+        admin_user_info: dict,
     ):
         user_create_dto = UserCreateInputDTO(
-            name='Test User',
-            email='test@example.com',
-            password='123456789',
+            name=admin_user_info['name'],
+            email=admin_user_info['email'],
+            password=admin_user_info['password'],
         )
         user_create_usecase = UserCreateUseCase(
             user_repository, password_hasher
         )
 
-        await user_create_usecase.execute(self.company_id, user_create_dto)
-
         with pytest.raises(UserAlreadyExistsException) as exc:
-            await user_create_usecase.execute(self.company_id, user_create_dto)
+            await user_create_usecase.execute(admin_user, user_create_dto)
 
         assert str(exc.value) == 'Email already registered'
