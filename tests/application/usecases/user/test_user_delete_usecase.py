@@ -44,3 +44,14 @@ class TestUserDeleteUsecase:
             await self.usecase.execute(requester, user_id)
 
         assert str(exc.value) == 'Unauthorized'
+
+    async def test_self_delete_should_raise_exception(self):
+        requester = self.users[0]
+        user_id = str(self.users[0].id)
+
+        with pytest.raises(UnauthorizedException) as exc:
+            await self.usecase.execute(requester, user_id)
+
+        assert (
+            str(exc.value) == 'You are not allowed to delete your own account.'
+        )
