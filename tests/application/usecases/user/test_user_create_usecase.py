@@ -1,9 +1,8 @@
 from datetime import datetime, timezone
-from typing import List
+from typing import List, Tuple
 
 import pytest
 from freezegun import freeze_time
-from uuid_extensions import uuid7str
 
 from src.application.dtos.user.user_create_dto import (
     UserCreateInputDTO,
@@ -17,6 +16,8 @@ from src.domain.exceptions.user_exceptions import UserAlreadyExistsException
 from src.domain.repositories.user_repository import UserRepository
 from src.domain.security.password_hasher import PasswordHasher
 
+SetupType = Tuple[List[User], UserCreateUseCase]
+
 mock_datetime = datetime(
     2025,
     1,
@@ -29,30 +30,28 @@ mock_datetime = datetime(
 )
 
 
-@pytest.fixture(autouse=True)
-def setup(
-    request,
-    admin_company_users: List[User],
-    user_repository: UserRepository,
-    password_hasher: PasswordHasher,
-):
-    request.cls.users = admin_company_users
-    request.cls.usecase = UserCreateUseCase(
-        user_repository,
-        password_hasher,
-    )
-
-
 @pytest.mark.asyncio
 class TestUserCreateUsecase:
-    company_id = uuid7str()
+    @pytest.fixture
+    def setup(
+        self,
+        admin_company_users: List[User],
+        user_repository: UserRepository,
+        password_hasher: PasswordHasher,
+    ) -> SetupType:
+        users = admin_company_users
+        usecase = UserCreateUseCase(
+            user_repository,
+            password_hasher,
+        )
+        return users, usecase
 
     @freeze_time(mock_datetime)
     async def test_new_user_info_should_return_created_user(
-        self, basic_user_info: dict
+        self, setup: SetupType, basic_user_info: dict
     ):
-        requester = self.users[0]
-        usecase = self.usecase
+        users, usecase = setup
+        requester = users[0]
 
         user_create_dto = UserCreateInputDTO(
             name=basic_user_info['name'],
@@ -76,10 +75,10 @@ class TestUserCreateUsecase:
         assert user.updated_at == mock_datetime
 
     async def test_existing_user_should_raise_exception(
-        self, admin_user_info: dict
+        self, setup: SetupType, admin_user_info: dict
     ):
-        requester = self.users[0]
-        usecase = self.usecase
+        users, usecase = setup
+        requester = users[0]
 
         user_create_dto = UserCreateInputDTO(
             name=admin_user_info['name'],
@@ -93,10 +92,10 @@ class TestUserCreateUsecase:
         assert str(exc.value) == 'Email already registered'
 
     async def test_non_admin_requester_should_raise_exception(
-        self, basic_user_info: dict
+        self, setup: SetupType, basic_user_info: dict
     ):
-        requester = self.users[1]
-        usecase = self.usecase
+        users, usecase = setup
+        requester = users[1]
 
         user_create_dto = UserCreateInputDTO(
             name=basic_user_info['name'],

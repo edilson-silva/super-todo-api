@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import List
+from typing import List, Tuple
 
 import pytest
 
@@ -11,23 +11,25 @@ from src.domain.entities.user_role import UserRole
 from src.domain.exceptions.auth_exceptions import UnauthorizedException
 from src.domain.repositories.user_repository import UserRepository
 
-
-@pytest.fixture(autouse=True)
-def setup(
-    request,
-    admin_company_users: List[User],
-    user_repository: UserRepository,
-):
-    request.cls.users = admin_company_users
-    request.cls.usecase = UserListUseCase(user_repository)
+SetupType = Tuple[List[User], UserListUseCase]
 
 
 @pytest.mark.asyncio
 class TestUserListUsecase:
-    async def test_should_return_a_list_with_five_users(self):
-        requester = self.users[0]
-        usecase = self.usecase
-        users_expected: List[User] = self.users
+    @pytest.fixture
+    def setup(
+        self,
+        admin_company_users: List[User],
+        user_repository: UserRepository,
+    ) -> SetupType:
+        return admin_company_users, UserListUseCase(user_repository)
+
+    async def test_should_return_a_list_with_five_users(
+        self, setup: SetupType
+    ):
+        users, usecase = setup
+        requester = users[0]
+        users_expected = users
 
         response: UserListOutputDTO = await usecase.execute(requester, 10, 0)
         users: List[UserOutputDTO] = response.data
@@ -47,13 +49,13 @@ class TestUserListUsecase:
             assert isinstance(user.created_at, datetime)
             assert isinstance(user.updated_at, datetime)
 
-    async def test_should_return_a_list_with_one_user(self):
-        requester = self.users[0]
-        usecase = self.usecase
-        users_expected: List[User] = self.users[4:]
+    async def test_should_return_a_list_with_one_user(self, setup: SetupType):
+        users, usecase = setup
+        requester = users[0]
+        users_expected = users[4:]
 
-        response: UserListOutputDTO = await usecase.execute(requester, 10, 4)
-        users: List[UserOutputDTO] = response.data
+        response = await usecase.execute(requester, 10, 4)
+        users = response.data
 
         assert isinstance(response, UserListOutputDTO)
         assert isinstance(users, list)
@@ -71,10 +73,10 @@ class TestUserListUsecase:
             assert isinstance(user.updated_at, datetime)
 
     async def test_non_admin_requester_should_raise_exception(
-        self, basic_user_info: dict
+        self, setup: SetupType, basic_user_info: dict
     ):
-        requester = self.users[1]
-        usecase = self.usecase
+        users, usecase = setup
+        requester = users[1]
 
         with pytest.raises(UnauthorizedException) as exc:
             await usecase.execute(requester, 10, 0)
