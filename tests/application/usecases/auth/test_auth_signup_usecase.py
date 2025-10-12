@@ -19,27 +19,39 @@ from src.infrastructure.repositories.company_repository_sqlalchemy import (
     CompanyRepositorySQLAlchemy,
 )
 
+SetupType = AuthSignupUseCase
+
 
 @pytest.mark.asyncio
 class TestAuthSignupUsecase:
-    async def test_new_user_info_should_return_created_user(
+    @pytest.fixture
+    def setup(
         self,
         user_repository: UserRepository,
         company_repository: CompanyRepository,
         password_hasher: PasswordHasher,
+    ) -> SetupType:
+        usecase = AuthSignupUseCase(
+            user_repository, company_repository, password_hasher
+        )
+        return usecase
+
+    async def test_new_user_info_should_return_created_user(
+        self,
+        setup: SetupType,
+        user_repository: UserRepository,
         admin_user_info: dict,
     ):
+        usecase = setup
+
         signup_dto = AuthSignupInputDTO(
             company_name=admin_user_info['company_name'],
             name=admin_user_info['name'],
             email=admin_user_info['email'],
             password=admin_user_info['password'],
         )
-        signup_usecase = AuthSignupUseCase(
-            user_repository, company_repository, password_hasher
-        )
 
-        response = await signup_usecase.execute(signup_dto)
+        response = await usecase.execute(signup_dto)
 
         assert response is None
 
@@ -56,57 +68,51 @@ class TestAuthSignupUsecase:
 
     async def test_existing_user_should_raise_exception(
         self,
-        user_repository: UserRepository,
-        company_repository: CompanyRepository,
-        password_hasher: PasswordHasher,
+        setup: SetupType,
         admin_user: User,
         admin_user_info: dict,
     ):
+        usecase = setup
+
         signup_dto = AuthSignupInputDTO(
             company_name=admin_user_info['company_name'],
             name=admin_user_info['name'],
             email=admin_user_info['email'],
             password=admin_user_info['password'],
         )
-        signup_usecase = AuthSignupUseCase(
-            user_repository, company_repository, password_hasher
-        )
 
         with pytest.raises(UserAlreadyExistsException) as exc:
-            await signup_usecase.execute(signup_dto)
+            await usecase.execute(signup_dto)
 
         assert str(exc.value) == 'Email already registered'
 
     async def test_already_registered_company_should_raise_exception(
         self,
-        user_repository: UserRepository,
-        company_repository: CompanyRepository,
-        password_hasher: PasswordHasher,
+        setup: SetupType,
         admin_user: User,
         admin_user_info: dict,
     ):
+        usecase = setup
+
         signup_dto = AuthSignupInputDTO(
             company_name=admin_user_info['company_name'],
             name=admin_user_info['name'],
             email='new_{}'.format(admin_user_info['email']),
             password=admin_user_info['password'],
         )
-        signup_usecase = AuthSignupUseCase(
-            user_repository, company_repository, password_hasher
-        )
 
         with pytest.raises(CompanyAlreadyRegisteredException) as exc:
-            await signup_usecase.execute(signup_dto)
+            await usecase.execute(signup_dto)
 
         assert str(exc.value) == 'Company already registered'
 
     async def test_company_register_error_should_raise_exception(
         self,
-        user_repository: UserRepository,
-        company_repository: CompanyRepository,
-        password_hasher: PasswordHasher,
+        setup: SetupType,
         admin_user_info: dict,
     ):
+        usecase = setup
+
         with patch.object(
             CompanyRepositorySQLAlchemy, 'create', return_value=None
         ):
@@ -116,11 +122,8 @@ class TestAuthSignupUsecase:
                 email=admin_user_info['email'],
                 password=admin_user_info['password'],
             )
-            signup_usecase = AuthSignupUseCase(
-                user_repository, company_repository, password_hasher
-            )
 
             with pytest.raises(CannotOperateException) as exc:
-                await signup_usecase.execute(signup_dto)
+                await usecase.execute(signup_dto)
 
             assert str(exc.value) == 'Cannot operate: Try again later'
