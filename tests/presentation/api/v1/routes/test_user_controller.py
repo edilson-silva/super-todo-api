@@ -302,3 +302,22 @@ class TestUserListController:
                 datetime_to_web_iso(user.updated_at)
                 == user_expected['updated_at']
             )
+
+    async def test_should_return_an_empty_list(
+        self, user_list_setup: UserListSetupType
+    ):
+        client, admin_user_headers, _, _, _ = user_list_setup
+
+        response = await client.get(
+            '/users?offset=10', headers=admin_user_headers
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+
+        response_data = response.json()
+        assert 'data' in response_data
+
+        users_expected = response_data['data']
+
+        assert isinstance(users_expected, list)
+        assert len(users_expected) == 0
