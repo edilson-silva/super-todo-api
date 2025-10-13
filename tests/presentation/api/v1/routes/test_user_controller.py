@@ -34,7 +34,7 @@ mock_update_datetime = datetime(
 
 UsersList = List[User]
 SetupType = Tuple[AsyncClient, dict, dict, dict, UsersList]
-CreateUserSetupType = Tuple[AsyncClient, dict, dict, dict]
+UserCreateSetupType = Tuple[AsyncClient, dict, dict, dict]
 
 
 @pytest.fixture
@@ -70,24 +70,47 @@ def setup(
     )
 
 
-@pytest.fixture
-def create_user_setup(setup: SetupType) -> CreateUserSetupType:
-    client, admin_user_headers, basic_user_headers, new_user_sample, _ = setup
-
-    return (
-        client,
-        admin_user_headers,
-        basic_user_headers,
-        new_user_sample,
-    )
-
-
 @pytest.mark.asyncio
 class TestUserCreateController:
-    async def test_missing_request_params_should_return_unprocessable_error(
-        self, create_user_setup: CreateUserSetupType
+    @pytest.fixture
+    def user_create_setup(self, setup: SetupType) -> UserCreateSetupType:
+        client, admin_user_headers, basic_user_headers, new_user_sample, _ = (
+            setup
+        )
+
+        return (
+            client,
+            admin_user_headers,
+            basic_user_headers,
+            new_user_sample,
+        )
+
+    async def test_missing_token_should_return_unauthorized_error(
+        self, user_create_setup: UserCreateSetupType
     ):
-        client, admin_user_headers, _, _ = create_user_setup
+        client, admin_user_headers, _, _ = user_create_setup
+
+        response = await client.post('/users')
+
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+        assert response.json() == {'detail': 'Not authenticated'}
+
+    async def test_non_admin_requester_should_return_forbidden_error(
+        self, user_create_setup: UserCreateSetupType
+    ):
+        client, _, basic_user_headers, new_user_sample = user_create_setup
+
+        response = await client.post(
+            '/users', headers=basic_user_headers, json=new_user_sample
+        )
+
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert response.json() == {'detail': 'Unauthorized'}
+
+    async def test_missing_request_params_should_return_unprocessable_error(
+        self, user_create_setup: UserCreateSetupType
+    ):
+        client, admin_user_headers, _, _ = user_create_setup
 
         response = await client.post(
             '/users', headers=admin_user_headers, json={}
@@ -119,11 +142,9 @@ class TestUserCreateController:
 
     @freeze_time(mock_create_datetime.isoformat())
     async def test_create_user_info_should_return_success(
-        self, create_user_setup: CreateUserSetupType, datetime_to_web_iso
+        self, user_create_setup: UserCreateSetupType, datetime_to_web_iso
     ):
-        client, admin_user_headers, basic_user_headers, new_user_sample = (
-            create_user_setup
-        )
+        client, admin_user_headers, _, new_user_sample = user_create_setup
 
         response = await client.post(
             '/users', headers=admin_user_headers, json=new_user_sample
@@ -147,11 +168,9 @@ class TestUserCreateController:
         )
 
     async def test_existing_user_info_should_return_bad_request_error(
-        self, create_user_setup: CreateUserSetupType, datetime_to_web_iso
+        self, user_create_setup: UserCreateSetupType, datetime_to_web_iso
     ):
-        client, admin_user_headers, basic_user_headers, new_user_sample = (
-            create_user_setup
-        )
+        client, admin_user_headers, _, new_user_sample = user_create_setup
 
         response1 = await client.post(
             '/users', headers=admin_user_headers, json=new_user_sample
@@ -165,13 +184,3 @@ class TestUserCreateController:
 
         assert response2.status_code == status.HTTP_400_BAD_REQUEST
         assert response2.json() == {'detail': 'Bad Request'}
-
-    async def test_missing_token_should_return_unauthorized_error(
-        self, create_user_setup: CreateUserSetupType
-    ):
-        client, admin_user_headers, _, _ = create_user_setup
-
-        response = await client.post('/users', headers={})
-
-        assert response.status_code == status.HTTP_401_UNAUTHORIZED
-        assert response.json() == {'detail': 'Not authenticated'}
