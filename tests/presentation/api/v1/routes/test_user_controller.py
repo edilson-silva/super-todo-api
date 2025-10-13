@@ -35,6 +35,7 @@ mock_update_datetime = datetime(
 UsersList = List[User]
 SetupType = Tuple[AsyncClient, dict, dict, dict, UsersList]
 UserCreateSetupType = Tuple[AsyncClient, dict, dict, dict]
+UserListSetupType = SetupType
 
 
 @pytest.fixture
@@ -184,3 +185,20 @@ class TestUserCreateController:
 
         assert response2.status_code == status.HTTP_400_BAD_REQUEST
         assert response2.json() == {'detail': 'Bad Request'}
+
+
+@pytest.mark.asyncio
+class TestUserListController:
+    @pytest.fixture
+    def user_list_setup(self, setup: SetupType) -> UserListSetupType:
+        return setup
+
+    async def test_missing_token_should_return_unauthorized_error(
+        self, user_list_setup: UserListSetupType
+    ):
+        client, admin_user_headers, _, _, _ = user_list_setup
+
+        response = await client.get('/users')
+
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+        assert response.json() == {'detail': 'Not authenticated'}
