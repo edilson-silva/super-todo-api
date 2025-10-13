@@ -165,3 +165,13 @@ class TestUserCreateController:
 
         assert response2.status_code == status.HTTP_400_BAD_REQUEST
         assert response2.json() == {'detail': 'Bad Request'}
+
+    async def test_missing_token_should_return_unauthorized_error(
+        self, create_user_setup: CreateUserSetupType
+    ):
+        client, admin_user_headers, _, _ = create_user_setup
+
+        response = await client.post('/users', headers={})
+
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+        assert response.json() == {'detail': 'Not authenticated'}
