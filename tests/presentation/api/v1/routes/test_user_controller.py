@@ -203,6 +203,16 @@ class TestUserListController:
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
         assert response.json() == {'detail': 'Not authenticated'}
 
+    async def test_non_admin_requester_should_return_forbidden_error(
+        self, user_list_setup: UserListSetupType
+    ):
+        client, _, basic_user_headers, _, _ = user_list_setup
+
+        response = await client.get('/users', headers=basic_user_headers)
+
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert response.json() == {'detail': 'Unauthorized'}
+
     async def test_should_return_a_list_with_six_users(
         self, user_list_setup: UserListSetupType, datetime_to_web_iso
     ):
