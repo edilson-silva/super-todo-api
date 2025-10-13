@@ -46,7 +46,7 @@ def setup(
     basic_user_token: TokenGeneratorEncodeOutputDTO,
     client: AsyncClient,
 ) -> SetupType:
-    users = UsersList
+    users = admin_company_users
     admin_user_access_token = (
         f'{admin_user_token.token_type} {admin_user_token.access_token}'
     )
@@ -202,3 +202,35 @@ class TestUserListController:
 
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
         assert response.json() == {'detail': 'Not authenticated'}
+
+    async def test_should_return_a_list_with_six_users(
+        self, user_list_setup: UserListSetupType, datetime_to_web_iso
+    ):
+        client, admin_user_headers, _, _, users = user_list_setup
+
+        response = await client.get('/users', headers=admin_user_headers)
+
+        assert response.status_code == status.HTTP_200_OK
+
+        response_data = response.json()
+        assert 'data' in response_data
+
+        users_expected = response_data['data']
+
+        assert isinstance(users_expected, list)
+        assert len(users_expected) == 6
+
+        for user, user_expected in zip(users, users_expected):
+            assert user.name == user_expected['name']
+            assert user.id == user_expected['id']
+            assert user.name == user_expected['name']
+            assert user.email == user_expected['email']
+            assert user.role == user_expected['role']
+            assert (
+                datetime_to_web_iso(user.created_at)
+                == user_expected['created_at']
+            )
+            assert (
+                datetime_to_web_iso(user.updated_at)
+                == user_expected['updated_at']
+            )
