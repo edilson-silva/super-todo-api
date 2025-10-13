@@ -16,7 +16,7 @@ def http_exception_handler(app: FastAPI):
     ):
         return JSONResponse(
             status_code=status.HTTP_400_BAD_REQUEST,
-            content={'details': str(exc)},
+            content={'detail': 'Bad Request'},
         )
 
     @app.exception_handler(InvalidTokenException)
@@ -25,7 +25,7 @@ def http_exception_handler(app: FastAPI):
     ):
         return JSONResponse(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            content={'details': str(exc)},
+            content={'detail': str(exc)},
         )
 
     @app.exception_handler(UnauthorizedException)
@@ -34,7 +34,7 @@ def http_exception_handler(app: FastAPI):
     ):
         return JSONResponse(
             status_code=status.HTTP_403_FORBIDDEN,
-            content={'details': str(exc)},
+            content={'detail': str(exc)},
         )
 
     @app.exception_handler(NotFoundException)
@@ -43,5 +43,5 @@ def http_exception_handler(app: FastAPI):
     ):
         return JSONResponse(
             status_code=status.HTTP_404_NOT_FOUND,
-            content={'details': str(exc)},
+            content={'detail': str(exc)},
         )
