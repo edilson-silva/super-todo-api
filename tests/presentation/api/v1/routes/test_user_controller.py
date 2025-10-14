@@ -40,6 +40,7 @@ UserListSetupType = SetupType
 UserGetSetupType = Tuple[AsyncClient, dict, UsersList]
 UserDeleteSetupType = Tuple[AsyncClient, dict, dict, UsersList]
 UserUpdateSetupType = SetupType
+UserUpdatePartialSetupType = UserUpdateSetupType
 
 
 @pytest.fixture
@@ -611,3 +612,44 @@ class TestUserUpdateController:
 
         assert response.status_code == status.HTTP_404_NOT_FOUND
         assert response.json() == {'detail': 'Not found'}
+
+
+@pytest.mark.asyncio
+class TestUserUpdatePartialController:
+    @pytest.fixture
+    def user_update_partial_setup(
+        self, setup: SetupType
+    ) -> UserUpdatePartialSetupType:
+        (
+            client,
+            admin_user_headers,
+            basic_user_headers,
+            new_user_sample,
+            users,
+        ) = setup
+
+        update_user_info = {
+            'name': new_user_sample['name'],
+            'password': new_user_sample['password'],
+            'role': new_user_sample['role'],
+            'avatar': new_user_sample['avatar'],
+        }
+        return (
+            client,
+            admin_user_headers,
+            basic_user_headers,
+            update_user_info,
+            users,
+        )
+
+    async def test_missing_token_should_return_unauthorized_error(
+        self, user_update_partial_setup: UserUpdatePartialSetupType
+    ):
+        client, _, _, update_user_info, users = user_update_partial_setup
+
+        response = await client.patch(
+            f'/users/{users[1].id}', json=update_user_info
+        )
+
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+        assert response.json() == {'detail': 'Not authenticated'}
