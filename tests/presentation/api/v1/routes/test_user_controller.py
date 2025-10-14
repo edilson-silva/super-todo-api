@@ -784,3 +784,19 @@ class TestUserUpdatePartialController:
         assert updated_user['updated_at'] == datetime_to_web_iso(
             mock_update_datetime
         )
+
+    async def test_invalid_id_should_return_not_found_error(
+        self, user_update_partial_setup: UserUpdatePartialSetupType
+    ):
+        client, admin_user_headers, _, update_user_info, users = (
+            user_update_partial_setup
+        )
+
+        response = await client.patch(
+            f'/users/{uuid7str()}',
+            headers=admin_user_headers,
+            json=update_user_info,
+        )
+
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+        assert response.json() == {'detail': 'Not found'}
