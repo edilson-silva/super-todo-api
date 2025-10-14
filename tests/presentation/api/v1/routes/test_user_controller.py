@@ -456,3 +456,17 @@ class TestUserDeleteController:
 
         assert response.status_code == status.HTTP_404_NOT_FOUND
         assert response.json() == {'detail': 'Not found'}
+
+    async def test_self_delete_should_return_unauthorized_error(
+        self, user_delete_setup: UserDeleteSetupType
+    ):
+        client, admin_user_headers, _, users = user_delete_setup
+
+        response = await client.delete(
+            f'/users/{users[0].id}', headers=admin_user_headers
+        )
+
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert response.json() == {
+            'detail': 'You are not allowed to delete your own account.'
+        }
