@@ -754,3 +754,33 @@ class TestUserUpdatePartialController:
         assert updated_user['updated_at'] == datetime_to_web_iso(
             mock_update_datetime
         )
+
+    @freeze_time(mock_update_datetime.isoformat())
+    async def test_update_user_avatar_should_return_success_with_updated_info(
+        self,
+        user_update_partial_setup: UserUpdatePartialSetupType,
+        datetime_to_web_iso,
+    ):
+        client, admin_user_headers, _, update_user_info, users = (
+            user_update_partial_setup
+        )
+
+        update_partial_user_info = {'avatar': update_user_info['avatar']}
+
+        response = await client.patch(
+            f'/users/{users[1].id}',
+            headers=admin_user_headers,
+            json=update_partial_user_info,
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+
+        updated_user = response.json()
+
+        assert updated_user['id'] == str(users[1].id)
+        assert updated_user['name'] == users[1].name
+        assert updated_user['role'] == users[1].role
+        assert updated_user['avatar'] == update_partial_user_info['avatar']
+        assert updated_user['updated_at'] == datetime_to_web_iso(
+            mock_update_datetime
+        )
