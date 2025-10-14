@@ -5,6 +5,7 @@ import pytest
 from fastapi import status
 from freezegun import freeze_time
 from httpx import AsyncClient
+from uuid_extensions import uuid7str
 
 from src.application.dtos.security.token_generator_encode_dto import (
     TokenGeneratorEncodeOutputDTO,
@@ -383,3 +384,15 @@ class TestUserGettController:
         assert (
             datetime_to_web_iso(user.updated_at) == user_expected['updated_at']
         )
+
+    async def test_invalid_id_should_return_not_found_error(
+        self, user_get_setup: UserGetSetupType, datetime_to_web_iso
+    ):
+        client, admin_user_headers, users = user_get_setup
+
+        response = await client.get(
+            f'/users/{uuid7str()}', headers=admin_user_headers
+        )
+
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+        assert response.json() == {'detail': 'Not found'}
