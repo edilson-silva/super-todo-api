@@ -433,3 +433,14 @@ class TestUserDeleteController:
 
         assert response.status_code == status.HTTP_403_FORBIDDEN
         assert response.json() == {'detail': 'Unauthorized'}
+
+    async def test_valid_id_should_delete_and_return_success(
+        self, user_delete_setup: UserDeleteSetupType
+    ):
+        client, admin_user_headers, _, users = user_delete_setup
+
+        response = await client.delete(
+            f'/users/{users[1].id}', headers=admin_user_headers
+        )
+
+        assert response.status_code == status.HTTP_204_NO_CONTENT
