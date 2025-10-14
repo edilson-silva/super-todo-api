@@ -163,28 +163,8 @@ async def admin_company_users(
 
 
 @pytest.fixture
-async def basic_user(
-    user_repository: UserRepository,
-    company_repository: CompanyRepository,
-    password_hasher: PasswordHasher,
-    basic_user_info: dict,
-) -> User:
-    company = Company(basic_user_info['company_name'])
-    company = await company_repository.create(company)
-
-    user_password_hashed = await password_hasher.async_hash(
-        basic_user_info['password']
-    )
-
-    user = User(
-        name=basic_user_info['name'],
-        email=basic_user_info['email'],
-        password=user_password_hashed,
-        role=basic_user_info['role'],
-        company_id=str(company.id),
-    )
-
-    user = await user_repository.create(user)
+async def basic_user(admin_company_users: List[User]) -> User:
+    user = admin_company_users[1]
 
     return user
 
