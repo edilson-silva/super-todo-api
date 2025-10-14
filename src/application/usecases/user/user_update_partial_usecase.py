@@ -46,7 +46,7 @@ class UserUpdatePartialUseCase:
             requester.id
         ):
             raise UnauthorizedException(
-                "You don't have enough permission to perform this action."
+                "You don't have enough permission to perform this action"
             )
 
         update_data = data.model_dump(exclude_unset=True)

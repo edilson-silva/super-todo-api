@@ -46,7 +46,7 @@ class UserUpdateUseCase:
             requester.id
         ):
             raise UnauthorizedException(
-                "You don't have enough permission to perform this action."
+                "You don't have enough permission to perform this action"
             )
 
         hashed_password = await self.password_hasher.async_hash(data.password)
