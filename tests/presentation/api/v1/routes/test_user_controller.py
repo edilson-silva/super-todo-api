@@ -355,3 +355,31 @@ class TestUserGettController:
 
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
         assert response.json() == {'detail': 'Not authenticated'}
+
+    async def test_valid_id_should_return_found_user_info(
+        self, user_get_setup: UserGetSetupType, datetime_to_web_iso
+    ):
+        client, admin_user_headers, users = user_get_setup
+
+        response = await client.get(
+            f'/users/{users[0].id}', headers=admin_user_headers
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+
+        user = users[0]
+        user_expected = response.json()
+
+        assert isinstance(user_expected, dict)
+
+        assert user.name == user_expected['name']
+        assert user.id == user_expected['id']
+        assert user.name == user_expected['name']
+        assert user.email == user_expected['email']
+        assert user.role == user_expected['role']
+        assert (
+            datetime_to_web_iso(user.created_at) == user_expected['created_at']
+        )
+        assert (
+            datetime_to_web_iso(user.updated_at) == user_expected['updated_at']
+        )
