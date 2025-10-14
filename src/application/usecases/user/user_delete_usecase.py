@@ -31,7 +31,7 @@ class UserDeleteUseCase:
 
         if str(user.id) == str(requester.id):
             raise UnauthorizedException(
-                'You are not allowed to delete your own account.'
+                'You are not allowed to delete your own account'
             )
 
         await self.repository.delete_by_id(user_id, requester.company_id)
