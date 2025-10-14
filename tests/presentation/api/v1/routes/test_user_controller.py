@@ -551,3 +551,21 @@ class TestUserUpdateController:
                 },
             ]
         }
+
+    async def test_cannot_update_admin_user_should_return_unauthorized_error(
+        self, user_update_setup: UserUpdateSetupType
+    ):
+        client, _, basic_user_headers, update_user_info, users = (
+            user_update_setup
+        )
+
+        response = await client.put(
+            f'/users/{users[0].id}',
+            headers=basic_user_headers,
+            json=update_user_info,
+        )
+
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert response.json() == {
+            'detail': "You don't have enough permission to perform this action"
+        }
