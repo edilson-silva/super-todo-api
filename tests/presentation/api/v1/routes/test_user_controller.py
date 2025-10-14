@@ -39,6 +39,7 @@ UserCreateSetupType = Tuple[AsyncClient, dict, dict, dict]
 UserListSetupType = SetupType
 UserGetSetupType = Tuple[AsyncClient, dict, UsersList]
 UserDeleteSetupType = Tuple[AsyncClient, dict, dict, UsersList]
+UserUpdateSetupType = SetupType
 
 
 @pytest.fixture
@@ -470,3 +471,42 @@ class TestUserDeleteController:
         assert response.json() == {
             'detail': 'You are not allowed to delete your own account'
         }
+
+
+@pytest.mark.asyncio
+class TestUserUpdateController:
+    @pytest.fixture
+    def user_update_setup(self, setup: SetupType) -> UserUpdateSetupType:
+        (
+            client,
+            admin_user_headers,
+            basic_user_headers,
+            new_user_sample,
+            users,
+        ) = setup
+
+        update_user_info = {
+            'name': new_user_sample['name'],
+            'password': new_user_sample['password'],
+            'role': new_user_sample['role'],
+            'avatar': new_user_sample['avatar'],
+        }
+        return (
+            client,
+            admin_user_headers,
+            basic_user_headers,
+            update_user_info,
+            users,
+        )
+
+    async def test_missing_token_should_return_unauthorized_error(
+        self, user_update_setup: UserUpdateSetupType
+    ):
+        client, _, _, update_user_info, users = user_update_setup
+
+        response = await client.put(
+            f'/users/{users[1].id}', json=update_user_info
+        )
+
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+        assert response.json() == {'detail': 'Not authenticated'}
