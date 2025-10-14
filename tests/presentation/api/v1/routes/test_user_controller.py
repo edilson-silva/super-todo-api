@@ -36,6 +36,7 @@ UsersList = List[User]
 SetupType = Tuple[AsyncClient, dict, dict, dict, UsersList]
 UserCreateSetupType = Tuple[AsyncClient, dict, dict, dict]
 UserListSetupType = SetupType
+UserGetSetupType = Tuple[AsyncClient, dict, UsersList]
 
 
 @pytest.fixture
@@ -331,3 +332,26 @@ class TestUserListController:
 
         assert isinstance(users_expected, list)
         assert len(users_expected) == 0
+
+
+@pytest.mark.asyncio
+class TestUserGettController:
+    @pytest.fixture
+    def user_get_setup(self, setup: SetupType) -> UserGetSetupType:
+        client, admin_user_headers, _, _, users = setup
+
+        return (
+            client,
+            admin_user_headers,
+            users,
+        )
+
+    async def test_missing_token_should_return_unauthorized_error(
+        self, user_get_setup: UserGetSetupType
+    ):
+        client, _, users = user_get_setup
+
+        response = await client.get(f'/users/{users[0].id}')
+
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+        assert response.json() == {'detail': 'Not authenticated'}
