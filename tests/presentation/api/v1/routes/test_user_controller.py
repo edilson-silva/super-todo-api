@@ -421,3 +421,15 @@ class TestUserDeleteController:
 
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
         assert response.json() == {'detail': 'Not authenticated'}
+
+    async def test_non_admin_requester_should_return_forbidden_error(
+        self, user_delete_setup: UserDeleteSetupType
+    ):
+        client, _, basic_user_headers, users = user_delete_setup
+
+        response = await client.delete(
+            f'/users/{users[1].id}', headers=basic_user_headers
+        )
+
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert response.json() == {'detail': 'Unauthorized'}
