@@ -510,3 +510,44 @@ class TestUserUpdateController:
 
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
         assert response.json() == {'detail': 'Not authenticated'}
+
+    async def test_missing_request_params_should_return_unprocessable_error(
+        self, user_update_setup: UserUpdateSetupType
+    ):
+        client, admin_user_headers, _, update_user_info, users = (
+            user_update_setup
+        )
+
+        response = await client.put(
+            f'/users/{users[1].id}', headers=admin_user_headers, json={}
+        )
+
+        assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+        assert response.json() == {
+            'detail': [
+                {
+                    'type': 'missing',
+                    'loc': ['body', 'name'],
+                    'msg': 'Field required',
+                    'input': {},
+                },
+                {
+                    'type': 'missing',
+                    'loc': ['body', 'password'],
+                    'msg': 'Field required',
+                    'input': {},
+                },
+                {
+                    'type': 'missing',
+                    'loc': ['body', 'role'],
+                    'msg': 'Field required',
+                    'input': {},
+                },
+                {
+                    'type': 'missing',
+                    'loc': ['body', 'avatar'],
+                    'msg': 'Field required',
+                    'input': {},
+                },
+            ]
+        }
