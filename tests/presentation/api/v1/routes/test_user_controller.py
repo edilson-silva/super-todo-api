@@ -38,6 +38,7 @@ SetupType = Tuple[AsyncClient, dict, dict, dict, UsersList]
 UserCreateSetupType = Tuple[AsyncClient, dict, dict, dict]
 UserListSetupType = SetupType
 UserGetSetupType = Tuple[AsyncClient, dict, UsersList]
+UserDeleteSetupType = Tuple[AsyncClient, dict, dict, UsersList]
 
 
 @pytest.fixture
@@ -396,3 +397,27 @@ class TestUserGettController:
 
         assert response.status_code == status.HTTP_404_NOT_FOUND
         assert response.json() == {'detail': 'Not found'}
+
+
+@pytest.mark.asyncio
+class TestUserDeleteController:
+    @pytest.fixture
+    def user_delete_setup(self, setup: SetupType) -> UserDeleteSetupType:
+        client, admin_user_headers, basic_user_headers, _, users = setup
+
+        return (
+            client,
+            admin_user_headers,
+            basic_user_headers,
+            users,
+        )
+
+    async def test_missing_token_should_return_unauthorized_error(
+        self, user_delete_setup: UserDeleteSetupType
+    ):
+        client, _, _, users = user_delete_setup
+
+        response = await client.delete(f'/users/{users[1].id}')
+
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+        assert response.json() == {'detail': 'Not authenticated'}
