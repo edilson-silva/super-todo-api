@@ -444,3 +444,15 @@ class TestUserDeleteController:
         )
 
         assert response.status_code == status.HTTP_204_NO_CONTENT
+
+    async def test_invalid_id_should_return_not_found_error(
+        self, user_delete_setup: UserDeleteSetupType
+    ):
+        client, admin_user_headers, _, users = user_delete_setup
+
+        response = await client.delete(
+            f'/users/{uuid7str()}', headers=admin_user_headers
+        )
+
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+        assert response.json() == {'detail': 'Not found'}
