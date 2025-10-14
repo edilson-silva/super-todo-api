@@ -671,3 +671,26 @@ class TestUserUpdatePartialController:
         assert response.json() == {
             'detail': "You don't have enough permission to perform this action"
         }
+
+    async def test_empty_body_should_return_original_user_info(
+        self,
+        user_update_partial_setup: UserUpdatePartialSetupType,
+        datetime_to_web_iso,
+    ):
+        client, admin_user_headers, _, _, users = user_update_partial_setup
+
+        response = await client.patch(
+            f'/users/{users[1].id}', headers=admin_user_headers, json={}
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+
+        updated_user = response.json()
+
+        assert updated_user['id'] == str(users[1].id)
+        assert updated_user['name'] == users[1].name
+        assert updated_user['role'] == users[1].role
+        assert updated_user['avatar'] == users[1].avatar
+        assert updated_user['updated_at'] == datetime_to_web_iso(
+            users[1].updated_at
+        )
