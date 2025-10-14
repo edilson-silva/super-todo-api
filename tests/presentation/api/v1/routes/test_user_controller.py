@@ -337,7 +337,7 @@ class TestUserListController:
 
 
 @pytest.mark.asyncio
-class TestUserGettController:
+class TestUserGetController:
     @pytest.fixture
     def user_get_setup(self, setup: SetupType) -> UserGetSetupType:
         client, admin_user_headers, _, _, users = setup
