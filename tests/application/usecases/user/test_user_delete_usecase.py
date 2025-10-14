@@ -63,5 +63,5 @@ class TestUserDeleteUsecase:
             await usecase.execute(requester, user_id)
 
         assert (
-            str(exc.value) == 'You are not allowed to delete your own account.'
+            str(exc.value) == 'You are not allowed to delete your own account'
         )

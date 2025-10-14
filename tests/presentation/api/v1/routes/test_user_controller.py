@@ -1,5 +1,5 @@
 from datetime import datetime, timezone
-from typing import List, Tuple
+from typing import List, Tuple, TypeAlias
 
 import pytest
 from fastapi import status
@@ -33,7 +33,7 @@ mock_update_datetime = datetime(
     timezone.utc,
 )
 
-UsersList = List[User]
+UsersList: TypeAlias = List[User]
 SetupType = Tuple[AsyncClient, dict, dict, dict, UsersList]
 UserCreateSetupType = Tuple[AsyncClient, dict, dict, dict]
 UserListSetupType = SetupType
@@ -468,5 +468,5 @@ class TestUserDeleteController:
 
         assert response.status_code == status.HTTP_403_FORBIDDEN
         assert response.json() == {
-            'detail': 'You are not allowed to delete your own account.'
+            'detail': 'You are not allowed to delete your own account'
         }
