@@ -653,3 +653,21 @@ class TestUserUpdatePartialController:
 
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
         assert response.json() == {'detail': 'Not authenticated'}
+
+    async def test_cannot_update_admin_user_should_return_unauthorized_error(
+        self, user_update_partial_setup: UserUpdatePartialSetupType
+    ):
+        client, _, basic_user_headers, update_user_info, users = (
+            user_update_partial_setup
+        )
+
+        response = await client.patch(
+            f'/users/{users[0].id}',
+            headers=basic_user_headers,
+            json=update_user_info,
+        )
+
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert response.json() == {
+            'detail': "You don't have enough permission to perform this action"
+        }
