@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from typing import List, Tuple, TypeAlias
 
 import pytest
@@ -32,6 +32,9 @@ mock_update_datetime = datetime(
     0,
     timezone.utc,
 )
+
+
+mock_future_datetime = datetime.now(tz=timezone.utc) + timedelta(days=1000)
 
 UsersList: TypeAlias = List[User]
 SetupType = Tuple[AsyncClient, dict, dict, dict, dict, UsersList]
@@ -119,6 +122,19 @@ class TestUserCreateController:
         response = await client.post(
             '/users', headers=empty_token_headers, json=new_user_sample
         )
+
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+        assert response.json() == {'detail': 'Invalid token'}
+
+    async def test_expired_token_should_return_unauthorized_error(
+        self, user_create_setup: UserCreateSetupType
+    ):
+        client, admin_user_headers, _, _, new_user_sample = user_create_setup
+
+        with freeze_time(mock_future_datetime):
+            response = await client.post(
+                '/users', headers=admin_user_headers, json=new_user_sample
+            )
 
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
         assert response.json() == {'detail': 'Invalid token'}
@@ -236,6 +252,17 @@ class TestUserListController:
         client, _, _, empty_token_headers, _, _ = user_list_setup
 
         response = await client.get('/users', headers=empty_token_headers)
+
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+        assert response.json() == {'detail': 'Invalid token'}
+
+    async def test_expired_token_should_return_unauthorized_error(
+        self, user_list_setup: UserListSetupType
+    ):
+        client, admin_user_headers, _, _, _, users = user_list_setup
+
+        with freeze_time(mock_future_datetime):
+            response = await client.get('/users', headers=admin_user_headers)
 
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
         assert response.json() == {'detail': 'Invalid token'}
@@ -405,6 +432,19 @@ class TestUserGetController:
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
         assert response.json() == {'detail': 'Invalid token'}
 
+    async def test_expired_token_should_return_unauthorized_error(
+        self, user_get_setup: UserGetSetupType
+    ):
+        client, admin_user_headers, _, users = user_get_setup
+
+        with freeze_time(mock_future_datetime):
+            response = await client.get(
+                f'/users/{users[0].id}', headers=admin_user_headers
+            )
+
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+        assert response.json() == {'detail': 'Invalid token'}
+
     async def test_valid_id_should_return_found_user_info(
         self, user_get_setup: UserGetSetupType, datetime_to_web_iso
     ):
@@ -500,6 +540,19 @@ class TestUserDeleteController:
 
         assert response.status_code == status.HTTP_403_FORBIDDEN
         assert response.json() == {'detail': 'Unauthorized'}
+
+    async def test_expired_token_should_return_unauthorized_error(
+        self, user_delete_setup: UserDeleteSetupType
+    ):
+        client, admin_user_headers, _, _, users = user_delete_setup
+
+        with freeze_time(mock_future_datetime):
+            response = await client.delete(
+                f'/users/{users[1].id}', headers=admin_user_headers
+            )
+
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+        assert response.json() == {'detail': 'Invalid token'}
 
     async def test_valid_id_should_delete_and_return_success(
         self, user_delete_setup: UserDeleteSetupType
@@ -680,6 +733,23 @@ class TestUserUpdateController:
             mock_update_datetime
         )
 
+    async def test_expired_token_should_return_unauthorized_error(
+        self, user_update_setup: UserUpdateSetupType
+    ):
+        client, admin_user_headers, _, _, update_user_info, users = (
+            user_update_setup
+        )
+
+        with freeze_time(mock_future_datetime):
+            response = await client.put(
+                f'/users/{users[1].id}',
+                headers=admin_user_headers,
+                json=update_user_info,
+            )
+
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+        assert response.json() == {'detail': 'Invalid token'}
+
     async def test_invalid_id_should_return_not_found_error(
         self, user_update_setup: UserUpdateSetupType
     ):
@@ -772,6 +842,23 @@ class TestUserUpdatePartialController:
         assert response.json() == {
             'detail': "You don't have enough permission to perform this action"
         }
+
+    async def test_expired_token_should_return_unauthorized_error(
+        self, user_update_partial_setup: UserUpdatePartialSetupType
+    ):
+        client, admin_user_headers, _, _, update_user_info, users = (
+            user_update_partial_setup
+        )
+
+        with freeze_time(mock_future_datetime):
+            response = await client.put(
+                f'/users/{users[1].id}',
+                headers=admin_user_headers,
+                json=update_user_info,
+            )
+
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+        assert response.json() == {'detail': 'Invalid token'}
 
     async def test_empty_body_should_return_original_user_info(
         self,
