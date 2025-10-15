@@ -8,6 +8,7 @@ from src.application.dtos.security.token_generator_encode_dto import (
     TokenGeneratorEncodeOutputDTO,
 )
 from src.core.settings import settings
+from src.domain.entities.user_entity import User
 from src.domain.entities.user_role import UserRole
 from src.domain.security.token_generator import TokenGenerator
 
@@ -43,3 +44,18 @@ class TestTokenGeneratorPyJWT:
         assert decoded_token.user_id == token_data['user_id']
         assert decoded_token.user_role == token_data['user_role']
         assert decoded_token.company_id == token_data['company_id']
+
+    async def test_should_decode_a_valid_token_and_return_its_payload(
+        self,
+        token_generator: TokenGenerator,
+        admin_user_token: TokenGeneratorEncodeOutputDTO,
+        admin_user: User,
+    ):
+        decoded_token = await token_generator.async_decode(
+            admin_user_token.access_token
+        )
+
+        assert isinstance(decoded_token, TokenGeneratorDecodeOutputDTO)
+        assert decoded_token.company_id == str(admin_user.company_id)
+        assert decoded_token.user_id == str(admin_user.id)
+        assert decoded_token.user_role == admin_user.role
