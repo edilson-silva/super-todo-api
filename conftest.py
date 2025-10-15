@@ -202,6 +202,13 @@ async def basic_user_token(
 
 
 @pytest.fixture
+async def empty_token(admin_user: User) -> TokenGeneratorEncodeOutputDTO:
+    token = TokenGeneratorEncodeOutputDTO(access_token='')
+
+    return token
+
+
+@pytest.fixture
 async def client(get_db_session) -> AsyncGenerator[AsyncClient, None]:
     def override_get_db_session():
         yield get_db_session

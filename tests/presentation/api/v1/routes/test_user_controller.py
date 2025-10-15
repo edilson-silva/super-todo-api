@@ -49,6 +49,7 @@ def setup(
     admin_user_token: TokenGeneratorEncodeOutputDTO,
     basic_user: User,
     basic_user_token: TokenGeneratorEncodeOutputDTO,
+    empty_token: TokenGeneratorEncodeOutputDTO,
     client: AsyncClient,
 ) -> SetupType:
     users = admin_company_users
@@ -60,7 +61,8 @@ def setup(
         f'{basic_user_token.token_type} {basic_user_token.access_token}'
     )
     basic_user_headers = {'Authorization': basic_user_access_token}
-    empty_token_headers = {'Authorization': 'Bearer '}
+    empty_access_token = f'{empty_token.token_type} {empty_token.access_token}'
+    empty_token_headers = {'Authorization': empty_access_token}
     new_user_sample = {
         'name': 'sample',
         'email': 'sample@mail.com',
