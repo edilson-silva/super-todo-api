@@ -1,3 +1,6 @@
+from datetime import datetime, timedelta, timezone
+
+from freezegun import freeze_time
 from uuid_extensions import uuid7str
 
 from src.application.dtos.security.token_generator_decode_dto import (
@@ -64,5 +67,19 @@ class TestTokenGeneratorPyJWT:
         self, token_generator: TokenGenerator
     ):
         decoded_token = await token_generator.async_decode('invalid_token')
+
+        assert decoded_token is None
+
+    async def test_should_decode_an_expired_token_and_return_none(
+        self,
+        token_generator: TokenGenerator,
+        admin_user_token: TokenGeneratorEncodeOutputDTO,
+    ):
+        future_date = datetime.now(tz=timezone.utc) + timedelta(minutes=1000)
+
+        with freeze_time(future_date):
+            decoded_token = await token_generator.async_decode(
+                admin_user_token.access_token
+            )
 
         assert decoded_token is None
