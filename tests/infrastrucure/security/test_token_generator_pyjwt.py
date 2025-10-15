@@ -59,3 +59,10 @@ class TestTokenGeneratorPyJWT:
         assert decoded_token.company_id == str(admin_user.company_id)
         assert decoded_token.user_id == str(admin_user.id)
         assert decoded_token.user_role == admin_user.role
+
+    async def test_should_decode_an_invalid_token_and_return_none(
+        self, token_generator: TokenGenerator
+    ):
+        decoded_token = await token_generator.async_decode('invalid_token')
+
+        assert decoded_token is None
