@@ -23,7 +23,7 @@ class TestTokenGeneratorPyJWT:
         }
         token_generator_input_dto = TokenGeneratorEncodeInputDTO(
             user_id=token_data['user_id'],
-            user_role=token_data['user_role'],
+            user_role=UserRole(token_data['user_role']),
             company_id=token_data['company_id'],
         )
 
