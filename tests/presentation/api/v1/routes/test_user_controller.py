@@ -37,11 +37,11 @@ mock_update_datetime = datetime(
 mock_future_datetime = datetime.now(tz=timezone.utc) + timedelta(days=1000)
 
 UsersList: TypeAlias = List[User]
-SetupType = Tuple[AsyncClient, dict, dict, dict, dict, UsersList]
-UserCreateSetupType = Tuple[AsyncClient, dict, dict, dict, dict]
+SetupType = Tuple[AsyncClient, dict, dict, dict, dict, dict, UsersList]
+UserCreateSetupType = Tuple[AsyncClient, dict, dict, dict, dict, dict]
 UserListSetupType = SetupType
-UserGetSetupType = Tuple[AsyncClient, dict, dict, UsersList]
-UserDeleteSetupType = Tuple[AsyncClient, dict, dict, dict, UsersList]
+UserGetSetupType = Tuple[AsyncClient, dict, dict, dict, UsersList]
+UserDeleteSetupType = Tuple[AsyncClient, dict, dict, dict, dict, UsersList]
 UserUpdateSetupType = SetupType
 UserUpdatePartialSetupType = UserUpdateSetupType
 
@@ -50,22 +50,26 @@ UserUpdatePartialSetupType = UserUpdateSetupType
 def setup(
     admin_company_users: UsersList,
     admin_user_token: TokenGeneratorEncodeOutputDTO,
-    basic_user: User,
     basic_user_token: TokenGeneratorEncodeOutputDTO,
     empty_token: TokenGeneratorEncodeOutputDTO,
+    invalid_token: TokenGeneratorEncodeOutputDTO,
     client: AsyncClient,
 ) -> SetupType:
     users = admin_company_users
     admin_user_access_token = (
         f'{admin_user_token.token_type} {admin_user_token.access_token}'
     )
-    admin_user_headers = {'Authorization': admin_user_access_token}
+    admin_user_token_headers = {'Authorization': admin_user_access_token}
     basic_user_access_token = (
         f'{basic_user_token.token_type} {basic_user_token.access_token}'
     )
-    basic_user_headers = {'Authorization': basic_user_access_token}
+    basic_user_token_headers = {'Authorization': basic_user_access_token}
     empty_access_token = f'{empty_token.token_type} {empty_token.access_token}'
     empty_token_headers = {'Authorization': empty_access_token}
+    invalid_access_token = (
+        f'{invalid_token.token_type} {invalid_token.access_token}'
+    )
+    invalid_token_headers = {'Authorization': invalid_access_token}
     new_user_sample = {
         'name': 'sample',
         'email': 'sample@mail.com',
@@ -75,9 +79,10 @@ def setup(
     }
     return (
         client,
-        admin_user_headers,
-        basic_user_headers,
+        admin_user_token_headers,
+        basic_user_token_headers,
         empty_token_headers,
+        invalid_token_headers,
         new_user_sample,
         users,
     )
@@ -89,25 +94,27 @@ class TestUserCreateController:
     def user_create_setup(self, setup: SetupType) -> UserCreateSetupType:
         (
             client,
-            admin_user_headers,
-            basic_user_headers,
+            admin_user_token_headers,
+            basic_user_token_headers,
             empty_token_headers,
+            invalid_token_headers,
             new_user_sample,
             _,
         ) = setup
 
         return (
             client,
-            admin_user_headers,
-            basic_user_headers,
+            admin_user_token_headers,
+            basic_user_token_headers,
             empty_token_headers,
+            invalid_token_headers,
             new_user_sample,
         )
 
     async def test_missing_token_should_return_unauthorized_error(
         self, user_create_setup: UserCreateSetupType
     ):
-        client, _, _, _, _ = user_create_setup
+        client, _, _, _, _, _ = user_create_setup
 
         response = await client.post('/users')
 
@@ -117,7 +124,9 @@ class TestUserCreateController:
     async def test_empty_token_should_return_unauthorized_error(
         self, user_create_setup: UserCreateSetupType
     ):
-        client, _, _, empty_token_headers, new_user_sample = user_create_setup
+        client, _, _, empty_token_headers, _, new_user_sample = (
+            user_create_setup
+        )
 
         response = await client.post(
             '/users', headers=empty_token_headers, json=new_user_sample
@@ -129,12 +138,30 @@ class TestUserCreateController:
     async def test_expired_token_should_return_unauthorized_error(
         self, user_create_setup: UserCreateSetupType
     ):
-        client, admin_user_headers, _, _, new_user_sample = user_create_setup
+        client, admin_user_token_headers, _, _, _, new_user_sample = (
+            user_create_setup
+        )
 
         with freeze_time(mock_future_datetime):
             response = await client.post(
-                '/users', headers=admin_user_headers, json=new_user_sample
+                '/users',
+                headers=admin_user_token_headers,
+                json=new_user_sample,
             )
+
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+        assert response.json() == {'detail': 'Invalid token'}
+
+    async def test_invalid_token_should_return_unauthorized_error(
+        self, user_create_setup: UserCreateSetupType
+    ):
+        client, _, _, _, invalid_user_headers, new_user_sample = (
+            user_create_setup
+        )
+
+        response = await client.post(
+            '/users', headers=invalid_user_headers, json=new_user_sample
+        )
 
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
         assert response.json() == {'detail': 'Invalid token'}
@@ -142,10 +169,12 @@ class TestUserCreateController:
     async def test_non_admin_requester_should_return_forbidden_error(
         self, user_create_setup: UserCreateSetupType
     ):
-        client, _, basic_user_headers, _, new_user_sample = user_create_setup
+        client, _, basic_user_token_headers, _, _, new_user_sample = (
+            user_create_setup
+        )
 
         response = await client.post(
-            '/users', headers=basic_user_headers, json=new_user_sample
+            '/users', headers=basic_user_token_headers, json=new_user_sample
         )
 
         assert response.status_code == status.HTTP_403_FORBIDDEN
@@ -154,10 +183,10 @@ class TestUserCreateController:
     async def test_missing_request_params_should_return_unprocessable_error(
         self, user_create_setup: UserCreateSetupType
     ):
-        client, admin_user_headers, _, _, _ = user_create_setup
+        client, admin_user_token_headers, _, _, _, _ = user_create_setup
 
         response = await client.post(
-            '/users', headers=admin_user_headers, json={}
+            '/users', headers=admin_user_token_headers, json={}
         )
 
         assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
@@ -188,10 +217,12 @@ class TestUserCreateController:
     async def test_create_user_info_should_return_success(
         self, user_create_setup: UserCreateSetupType, datetime_to_web_iso
     ):
-        client, admin_user_headers, _, _, new_user_sample = user_create_setup
+        client, admin_user_token_headers, _, _, _, new_user_sample = (
+            user_create_setup
+        )
 
         response = await client.post(
-            '/users', headers=admin_user_headers, json=new_user_sample
+            '/users', headers=admin_user_token_headers, json=new_user_sample
         )
 
         assert response.status_code == status.HTTP_201_CREATED
@@ -214,16 +245,18 @@ class TestUserCreateController:
     async def test_existing_user_info_should_return_bad_request_error(
         self, user_create_setup: UserCreateSetupType, datetime_to_web_iso
     ):
-        client, admin_user_headers, _, _, new_user_sample = user_create_setup
+        client, admin_user_token_headers, _, _, _, new_user_sample = (
+            user_create_setup
+        )
 
         response1 = await client.post(
-            '/users', headers=admin_user_headers, json=new_user_sample
+            '/users', headers=admin_user_token_headers, json=new_user_sample
         )
 
         assert response1.status_code == status.HTTP_201_CREATED
 
         response2 = await client.post(
-            '/users', headers=admin_user_headers, json=new_user_sample
+            '/users', headers=admin_user_token_headers, json=new_user_sample
         )
 
         assert response2.status_code == status.HTTP_400_BAD_REQUEST
@@ -239,7 +272,7 @@ class TestUserListController:
     async def test_missing_token_should_return_unauthorized_error(
         self, user_list_setup: UserListSetupType
     ):
-        client, _, _, _, _, _ = user_list_setup
+        client, _, _, _, _, _, _ = user_list_setup
 
         response = await client.get('/users')
 
@@ -249,7 +282,7 @@ class TestUserListController:
     async def test_empty_token_should_return_unauthorized_error(
         self, user_list_setup: UserListSetupType
     ):
-        client, _, _, empty_token_headers, _, _ = user_list_setup
+        client, _, _, empty_token_headers, _, _, _ = user_list_setup
 
         response = await client.get('/users', headers=empty_token_headers)
 
@@ -259,10 +292,22 @@ class TestUserListController:
     async def test_expired_token_should_return_unauthorized_error(
         self, user_list_setup: UserListSetupType
     ):
-        client, admin_user_headers, _, _, _, users = user_list_setup
+        client, admin_user_token_headers, _, _, _, _, users = user_list_setup
 
         with freeze_time(mock_future_datetime):
-            response = await client.get('/users', headers=admin_user_headers)
+            response = await client.get(
+                '/users', headers=admin_user_token_headers
+            )
+
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+        assert response.json() == {'detail': 'Invalid token'}
+
+    async def test_invalid_token_should_return_unauthorized_error(
+        self, user_list_setup: UserListSetupType
+    ):
+        client, _, _, _, invalid_token_headers, _, users = user_list_setup
+
+        response = await client.get('/users', headers=invalid_token_headers)
 
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
         assert response.json() == {'detail': 'Invalid token'}
@@ -270,9 +315,9 @@ class TestUserListController:
     async def test_non_admin_requester_should_return_forbidden_error(
         self, user_list_setup: UserListSetupType
     ):
-        client, _, basic_user_headers, _, _, _ = user_list_setup
+        client, _, basic_user_token_headers, _, _, _, _ = user_list_setup
 
-        response = await client.get('/users', headers=basic_user_headers)
+        response = await client.get('/users', headers=basic_user_token_headers)
 
         assert response.status_code == status.HTTP_403_FORBIDDEN
         assert response.json() == {'detail': 'Unauthorized'}
@@ -280,9 +325,9 @@ class TestUserListController:
     async def test_should_return_a_list_with_six_users(
         self, user_list_setup: UserListSetupType, datetime_to_web_iso
     ):
-        client, admin_user_headers, _, _, _, users = user_list_setup
+        client, admin_user_token_headers, _, _, _, _, users = user_list_setup
 
-        response = await client.get('/users', headers=admin_user_headers)
+        response = await client.get('/users', headers=admin_user_token_headers)
 
         assert response.status_code == status.HTTP_200_OK
 
@@ -312,10 +357,10 @@ class TestUserListController:
     async def test_should_use_limit_param_and_return_a_list_with_two_users(
         self, user_list_setup: UserListSetupType, datetime_to_web_iso
     ):
-        client, admin_user_headers, _, _, _, users = user_list_setup
+        client, admin_user_token_headers, _, _, _, _, users = user_list_setup
 
         response = await client.get(
-            '/users?limit=2&skip=0', headers=admin_user_headers
+            '/users?limit=2&skip=0', headers=admin_user_token_headers
         )
 
         assert response.status_code == status.HTTP_200_OK
@@ -346,10 +391,10 @@ class TestUserListController:
     async def test_should_use_offset_param_and_return_a_list_with_two_users(
         self, user_list_setup: UserListSetupType, datetime_to_web_iso
     ):
-        client, admin_user_headers, _, _, _, users = user_list_setup
+        client, admin_user_token_headers, _, _, _, _, users = user_list_setup
 
         response = await client.get(
-            '/users?limit=2&offset=2', headers=admin_user_headers
+            '/users?limit=2&offset=2', headers=admin_user_token_headers
         )
 
         assert response.status_code == status.HTTP_200_OK
@@ -380,10 +425,10 @@ class TestUserListController:
     async def test_should_return_an_empty_list(
         self, user_list_setup: UserListSetupType
     ):
-        client, admin_user_headers, _, _, _, _ = user_list_setup
+        client, admin_user_token_headers, _, _, _, _, _ = user_list_setup
 
         response = await client.get(
-            '/users?offset=10', headers=admin_user_headers
+            '/users?offset=10', headers=admin_user_token_headers
         )
 
         assert response.status_code == status.HTTP_200_OK
@@ -401,19 +446,28 @@ class TestUserListController:
 class TestUserGetController:
     @pytest.fixture
     def user_get_setup(self, setup: SetupType) -> UserGetSetupType:
-        client, admin_user_headers, _, empty_token_headers, _, users = setup
+        (
+            client,
+            admin_user_token_headers,
+            _,
+            empty_token_headers,
+            invalid_token_headers,
+            _,
+            users,
+        ) = setup
 
         return (
             client,
-            admin_user_headers,
+            admin_user_token_headers,
             empty_token_headers,
+            invalid_token_headers,
             users,
         )
 
     async def test_missing_token_should_return_unauthorized_error(
         self, user_get_setup: UserGetSetupType
     ):
-        client, _, _, users = user_get_setup
+        client, _, _, _, users = user_get_setup
 
         response = await client.get(f'/users/{users[0].id}')
 
@@ -423,7 +477,7 @@ class TestUserGetController:
     async def test_empty_token_should_return_unauthorized_error(
         self, user_get_setup: UserGetSetupType
     ):
-        client, _, empty_token_headers, users = user_get_setup
+        client, _, empty_token_headers, _, users = user_get_setup
 
         response = await client.get(
             f'/users/{users[1].id}', headers=empty_token_headers
@@ -435,12 +489,24 @@ class TestUserGetController:
     async def test_expired_token_should_return_unauthorized_error(
         self, user_get_setup: UserGetSetupType
     ):
-        client, admin_user_headers, _, users = user_get_setup
+        client, _, _, invalid_token_headers, users = user_get_setup
 
         with freeze_time(mock_future_datetime):
             response = await client.get(
-                f'/users/{users[0].id}', headers=admin_user_headers
+                f'/users/{users[0].id}', headers=invalid_token_headers
             )
+
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+        assert response.json() == {'detail': 'Invalid token'}
+
+    async def test_invalid_token_should_return_unauthorized_error(
+        self, user_get_setup: UserGetSetupType
+    ):
+        client, _, _, invalid_token_headers, users = user_get_setup
+
+        response = await client.get(
+            f'/users/{users[0].id}', headers=invalid_token_headers
+        )
 
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
         assert response.json() == {'detail': 'Invalid token'}
@@ -448,10 +514,10 @@ class TestUserGetController:
     async def test_valid_id_should_return_found_user_info(
         self, user_get_setup: UserGetSetupType, datetime_to_web_iso
     ):
-        client, admin_user_headers, _, users = user_get_setup
+        client, admin_user_token_headers, _, _, users = user_get_setup
 
         response = await client.get(
-            f'/users/{users[0].id}', headers=admin_user_headers
+            f'/users/{users[0].id}', headers=admin_user_token_headers
         )
 
         assert response.status_code == status.HTTP_200_OK
@@ -476,10 +542,10 @@ class TestUserGetController:
     async def test_invalid_id_should_return_not_found_error(
         self, user_get_setup: UserGetSetupType, datetime_to_web_iso
     ):
-        client, admin_user_headers, _, users = user_get_setup
+        client, admin_user_token_headers, _, _, users = user_get_setup
 
         response = await client.get(
-            f'/users/{uuid7str()}', headers=admin_user_headers
+            f'/users/{uuid7str()}', headers=admin_user_token_headers
         )
 
         assert response.status_code == status.HTTP_404_NOT_FOUND
@@ -492,25 +558,27 @@ class TestUserDeleteController:
     def user_delete_setup(self, setup: SetupType) -> UserDeleteSetupType:
         (
             client,
-            admin_user_headers,
-            basic_user_headers,
+            admin_user_token_headers,
+            basic_user_token_headers,
             empty_token_headers,
+            invalid_token_headers,
             _,
             users,
         ) = setup
 
         return (
             client,
-            admin_user_headers,
-            basic_user_headers,
+            admin_user_token_headers,
+            basic_user_token_headers,
             empty_token_headers,
+            invalid_token_headers,
             users,
         )
 
     async def test_missing_token_should_return_unauthorized_error(
         self, user_delete_setup: UserDeleteSetupType
     ):
-        client, _, _, _, users = user_delete_setup
+        client, _, _, _, _, users = user_delete_setup
 
         response = await client.delete(f'/users/{users[1].id}')
 
@@ -520,7 +588,7 @@ class TestUserDeleteController:
     async def test_empty_token_should_return_unauthorized_error(
         self, user_delete_setup: UserDeleteSetupType
     ):
-        client, _, _, empty_token_headers, users = user_delete_setup
+        client, _, _, empty_token_headers, _, users = user_delete_setup
 
         response = await client.delete(
             f'/users/{users[1].id}', headers=empty_token_headers
@@ -529,13 +597,25 @@ class TestUserDeleteController:
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
         assert response.json() == {'detail': 'Invalid token'}
 
+    async def test_invalid_token_should_return_unauthorized_error(
+        self, user_delete_setup: UserDeleteSetupType
+    ):
+        client, _, _, _, invalid_token_headers, users = user_delete_setup
+
+        response = await client.get(
+            f'/users/{users[0].id}', headers=invalid_token_headers
+        )
+
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+        assert response.json() == {'detail': 'Invalid token'}
+
     async def test_non_admin_requester_should_return_forbidden_error(
         self, user_delete_setup: UserDeleteSetupType
     ):
-        client, _, basic_user_headers, _, users = user_delete_setup
+        client, _, basic_user_token_headers, _, _, users = user_delete_setup
 
         response = await client.delete(
-            f'/users/{users[1].id}', headers=basic_user_headers
+            f'/users/{users[1].id}', headers=basic_user_token_headers
         )
 
         assert response.status_code == status.HTTP_403_FORBIDDEN
@@ -544,11 +624,11 @@ class TestUserDeleteController:
     async def test_expired_token_should_return_unauthorized_error(
         self, user_delete_setup: UserDeleteSetupType
     ):
-        client, admin_user_headers, _, _, users = user_delete_setup
+        client, admin_user_token_headers, _, _, _, users = user_delete_setup
 
         with freeze_time(mock_future_datetime):
             response = await client.delete(
-                f'/users/{users[1].id}', headers=admin_user_headers
+                f'/users/{users[1].id}', headers=admin_user_token_headers
             )
 
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
@@ -557,10 +637,10 @@ class TestUserDeleteController:
     async def test_valid_id_should_delete_and_return_success(
         self, user_delete_setup: UserDeleteSetupType
     ):
-        client, admin_user_headers, _, _, users = user_delete_setup
+        client, admin_user_token_headers, _, _, _, users = user_delete_setup
 
         response = await client.delete(
-            f'/users/{users[1].id}', headers=admin_user_headers
+            f'/users/{users[1].id}', headers=admin_user_token_headers
         )
 
         assert response.status_code == status.HTTP_204_NO_CONTENT
@@ -568,10 +648,10 @@ class TestUserDeleteController:
     async def test_invalid_id_should_return_not_found_error(
         self, user_delete_setup: UserDeleteSetupType
     ):
-        client, admin_user_headers, _, _, users = user_delete_setup
+        client, admin_user_token_headers, _, _, _, users = user_delete_setup
 
         response = await client.delete(
-            f'/users/{uuid7str()}', headers=admin_user_headers
+            f'/users/{uuid7str()}', headers=admin_user_token_headers
         )
 
         assert response.status_code == status.HTTP_404_NOT_FOUND
@@ -580,10 +660,10 @@ class TestUserDeleteController:
     async def test_self_delete_should_return_unauthorized_error(
         self, user_delete_setup: UserDeleteSetupType
     ):
-        client, admin_user_headers, _, _, users = user_delete_setup
+        client, admin_user_token_headers, _, _, _, users = user_delete_setup
 
         response = await client.delete(
-            f'/users/{users[0].id}', headers=admin_user_headers
+            f'/users/{users[0].id}', headers=admin_user_token_headers
         )
 
         assert response.status_code == status.HTTP_403_FORBIDDEN
@@ -598,9 +678,10 @@ class TestUserUpdateController:
     def user_update_setup(self, setup: SetupType) -> UserUpdateSetupType:
         (
             client,
-            admin_user_headers,
-            basic_user_headers,
+            admin_user_token_headers,
+            basic_user_token_headers,
             empty_token_headers,
+            invalid_token_headers,
             new_user_sample,
             users,
         ) = setup
@@ -613,9 +694,10 @@ class TestUserUpdateController:
         }
         return (
             client,
-            admin_user_headers,
-            basic_user_headers,
+            admin_user_token_headers,
+            basic_user_token_headers,
             empty_token_headers,
+            invalid_token_headers,
             update_user_info,
             users,
         )
@@ -623,7 +705,7 @@ class TestUserUpdateController:
     async def test_missing_token_should_return_unauthorized_error(
         self, user_update_setup: UserUpdateSetupType
     ):
-        client, _, _, _, update_user_info, users = user_update_setup
+        client, _, _, update_user_info, _, _, users = user_update_setup
 
         response = await client.put(
             f'/users/{users[1].id}', json=update_user_info
@@ -635,7 +717,7 @@ class TestUserUpdateController:
     async def test_empty_token_should_return_unauthorized_error(
         self, user_update_setup: UserUpdateSetupType
     ):
-        client, _, _, empty_token_headers, update_user_info, users = (
+        client, _, _, empty_token_headers, update_user_info, _, users = (
             user_update_setup
         )
 
@@ -648,15 +730,31 @@ class TestUserUpdateController:
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
         assert response.json() == {'detail': 'Invalid token'}
 
-    async def test_missing_request_params_should_return_unprocessable_error(
+    async def test_invalid_token_should_return_unauthorized_error(
         self, user_update_setup: UserUpdateSetupType
     ):
-        client, admin_user_headers, _, _, update_user_info, users = (
+        client, _, _, invalid_token_headers, update_user_info, _, users = (
             user_update_setup
         )
 
         response = await client.put(
-            f'/users/{users[1].id}', headers=admin_user_headers, json={}
+            f'/users/{users[1].id}',
+            json=update_user_info,
+            headers=invalid_token_headers,
+        )
+
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+        assert response.json() == {'detail': 'Invalid token'}
+
+    async def test_missing_request_params_should_return_unprocessable_error(
+        self, user_update_setup: UserUpdateSetupType
+    ):
+        client, admin_user_token_headers, _, update_user_info, _, _, users = (
+            user_update_setup
+        )
+
+        response = await client.put(
+            f'/users/{users[1].id}', headers=admin_user_token_headers, json={}
         )
 
         assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
@@ -692,13 +790,13 @@ class TestUserUpdateController:
     async def test_cannot_update_admin_user_should_return_unauthorized_error(
         self, user_update_setup: UserUpdateSetupType
     ):
-        client, _, basic_user_headers, _, update_user_info, users = (
+        client, _, basic_user_token_headers, _, _, update_user_info, users = (
             user_update_setup
         )
 
         response = await client.put(
             f'/users/{users[0].id}',
-            headers=basic_user_headers,
+            headers=basic_user_token_headers,
             json=update_user_info,
         )
 
@@ -711,13 +809,13 @@ class TestUserUpdateController:
     async def test_update_user_should_return_success_with_updated_info(
         self, user_update_setup: UserUpdateSetupType, datetime_to_web_iso
     ):
-        client, admin_user_headers, _, _, update_user_info, users = (
+        client, admin_user_token_headers, _, _, _, update_user_info, users = (
             user_update_setup
         )
 
         response = await client.put(
             f'/users/{users[1].id}',
-            headers=admin_user_headers,
+            headers=admin_user_token_headers,
             json=update_user_info,
         )
 
@@ -736,14 +834,14 @@ class TestUserUpdateController:
     async def test_expired_token_should_return_unauthorized_error(
         self, user_update_setup: UserUpdateSetupType
     ):
-        client, admin_user_headers, _, _, update_user_info, users = (
+        client, admin_user_token_headers, _, update_user_info, _, _, users = (
             user_update_setup
         )
 
         with freeze_time(mock_future_datetime):
             response = await client.put(
                 f'/users/{users[1].id}',
-                headers=admin_user_headers,
+                headers=admin_user_token_headers,
                 json=update_user_info,
             )
 
@@ -753,13 +851,13 @@ class TestUserUpdateController:
     async def test_invalid_id_should_return_not_found_error(
         self, user_update_setup: UserUpdateSetupType
     ):
-        client, admin_user_headers, _, _, update_user_info, users = (
+        client, admin_user_token_headers, _, _, _, update_user_info, users = (
             user_update_setup
         )
 
         response = await client.put(
             f'/users/{uuid7str()}',
-            headers=admin_user_headers,
+            headers=admin_user_token_headers,
             json=update_user_info,
         )
 
@@ -775,9 +873,10 @@ class TestUserUpdatePartialController:
     ) -> UserUpdatePartialSetupType:
         (
             client,
-            admin_user_headers,
-            basic_user_headers,
+            admin_user_token_headers,
+            basic_user_token_headers,
             empty_token_headers,
+            invalid_token_headers,
             new_user_sample,
             users,
         ) = setup
@@ -790,9 +889,10 @@ class TestUserUpdatePartialController:
         }
         return (
             client,
-            admin_user_headers,
-            basic_user_headers,
+            admin_user_token_headers,
+            basic_user_token_headers,
             empty_token_headers,
+            invalid_token_headers,
             update_user_info,
             users,
         )
@@ -800,7 +900,7 @@ class TestUserUpdatePartialController:
     async def test_missing_token_should_return_unauthorized_error(
         self, user_update_partial_setup: UserUpdatePartialSetupType
     ):
-        client, _, _, _, update_user_info, users = user_update_partial_setup
+        client, _, _, _, _, update_user_info, users = user_update_partial_setup
 
         response = await client.patch(
             f'/users/{users[1].id}', json=update_user_info
@@ -812,7 +912,7 @@ class TestUserUpdatePartialController:
     async def test_empty_token_should_return_unauthorized_error(
         self, user_update_partial_setup: UserUpdatePartialSetupType
     ):
-        client, _, _, empty_token_headers, update_user_info, users = (
+        client, _, _, empty_token_headers, _, update_user_info, users = (
             user_update_partial_setup
         )
 
@@ -828,13 +928,13 @@ class TestUserUpdatePartialController:
     async def test_cannot_update_admin_user_should_return_unauthorized_error(
         self, user_update_partial_setup: UserUpdatePartialSetupType
     ):
-        client, _, basic_user_headers, _, update_user_info, users = (
+        client, _, basic_user_token_headers, _, _, update_user_info, users = (
             user_update_partial_setup
         )
 
         response = await client.patch(
             f'/users/{users[0].id}',
-            headers=basic_user_headers,
+            headers=basic_user_token_headers,
             json=update_user_info,
         )
 
@@ -846,16 +946,32 @@ class TestUserUpdatePartialController:
     async def test_expired_token_should_return_unauthorized_error(
         self, user_update_partial_setup: UserUpdatePartialSetupType
     ):
-        client, admin_user_headers, _, _, update_user_info, users = (
+        client, admin_user_token_headers, _, _, _, update_user_info, users = (
             user_update_partial_setup
         )
 
         with freeze_time(mock_future_datetime):
-            response = await client.put(
-                f'/users/{users[1].id}',
-                headers=admin_user_headers,
+            response = await client.patch(
+                f'/users/{users[0].id}',
+                headers=admin_user_token_headers,
                 json=update_user_info,
             )
+
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+        assert response.json() == {'detail': 'Invalid token'}
+
+    async def test_invalid_token_should_return_unauthorized_error(
+        self, user_update_partial_setup: UserUpdatePartialSetupType
+    ):
+        client, _, _, _, invalid_token_headers, update_user_info, users = (
+            user_update_partial_setup
+        )
+
+        response = await client.patch(
+            f'/users/{users[0].id}',
+            headers=invalid_token_headers,
+            json=update_user_info,
+        )
 
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
         assert response.json() == {'detail': 'Invalid token'}
@@ -865,10 +981,12 @@ class TestUserUpdatePartialController:
         user_update_partial_setup: UserUpdatePartialSetupType,
         datetime_to_web_iso,
     ):
-        client, admin_user_headers, _, _, _, users = user_update_partial_setup
+        client, admin_user_token_headers, _, _, _, _, users = (
+            user_update_partial_setup
+        )
 
         response = await client.patch(
-            f'/users/{users[1].id}', headers=admin_user_headers, json={}
+            f'/users/{users[1].id}', headers=admin_user_token_headers, json={}
         )
 
         assert response.status_code == status.HTTP_200_OK
@@ -889,7 +1007,7 @@ class TestUserUpdatePartialController:
         user_update_partial_setup: UserUpdatePartialSetupType,
         datetime_to_web_iso,
     ):
-        client, admin_user_headers, _, _, update_user_info, users = (
+        client, admin_user_token_headers, _, _, _, update_user_info, users = (
             user_update_partial_setup
         )
 
@@ -897,7 +1015,7 @@ class TestUserUpdatePartialController:
 
         response = await client.patch(
             f'/users/{users[1].id}',
-            headers=admin_user_headers,
+            headers=admin_user_token_headers,
             json=update_partial_user_info,
         )
 
@@ -919,7 +1037,7 @@ class TestUserUpdatePartialController:
         user_update_partial_setup: UserUpdatePartialSetupType,
         datetime_to_web_iso,
     ):
-        client, admin_user_headers, _, _, update_user_info, users = (
+        client, admin_user_token_headers, _, _, _, update_user_info, users = (
             user_update_partial_setup
         )
 
@@ -927,7 +1045,7 @@ class TestUserUpdatePartialController:
 
         response = await client.patch(
             f'/users/{users[1].id}',
-            headers=admin_user_headers,
+            headers=admin_user_token_headers,
             json=update_partial_user_info,
         )
 
@@ -949,7 +1067,7 @@ class TestUserUpdatePartialController:
         user_update_partial_setup: UserUpdatePartialSetupType,
         datetime_to_web_iso,
     ):
-        client, admin_user_headers, _, _, update_user_info, users = (
+        client, admin_user_token_headers, _, _, _, update_user_info, users = (
             user_update_partial_setup
         )
 
@@ -957,7 +1075,7 @@ class TestUserUpdatePartialController:
 
         response = await client.patch(
             f'/users/{users[1].id}',
-            headers=admin_user_headers,
+            headers=admin_user_token_headers,
             json=update_partial_user_info,
         )
 
@@ -979,7 +1097,7 @@ class TestUserUpdatePartialController:
         user_update_partial_setup: UserUpdatePartialSetupType,
         datetime_to_web_iso,
     ):
-        client, admin_user_headers, _, _, update_user_info, users = (
+        client, admin_user_token_headers, _, _, _, update_user_info, users = (
             user_update_partial_setup
         )
 
@@ -987,7 +1105,7 @@ class TestUserUpdatePartialController:
 
         response = await client.patch(
             f'/users/{users[1].id}',
-            headers=admin_user_headers,
+            headers=admin_user_token_headers,
             json=update_partial_user_info,
         )
 
@@ -1006,13 +1124,13 @@ class TestUserUpdatePartialController:
     async def test_invalid_id_should_return_not_found_error(
         self, user_update_partial_setup: UserUpdatePartialSetupType
     ):
-        client, admin_user_headers, _, _, update_user_info, users = (
+        client, admin_user_token_headers, _, _, _, update_user_info, users = (
             user_update_partial_setup
         )
 
         response = await client.patch(
             f'/users/{uuid7str()}',
-            headers=admin_user_headers,
+            headers=admin_user_token_headers,
             json=update_user_info,
         )
 

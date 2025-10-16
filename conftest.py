@@ -209,6 +209,15 @@ async def empty_token(admin_user: User) -> TokenGeneratorEncodeOutputDTO:
 
 
 @pytest.fixture
+async def invalid_token() -> TokenGeneratorEncodeOutputDTO:
+    token = TokenGeneratorEncodeOutputDTO(
+        access_token='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIwNjhmMDUxMi1jZDA4LTdmMmMtODAwMC0wNWQ3MGM5ZGQ2NmYiLCJyb2xlIjoiYWRtaW4iLCJjb21wYW55IjoiIn0.FOeuvvLxOpoLZK19ui4wcPqJRuYWAnMrl4XImp4z0T0'
+    )
+
+    return token
+
+
+@pytest.fixture
 async def client(get_db_session) -> AsyncGenerator[AsyncClient, None]:
     def override_get_db_session():
         yield get_db_session
