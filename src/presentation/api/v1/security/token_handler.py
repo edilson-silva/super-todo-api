@@ -36,7 +36,7 @@ async def get_requester_from_token(
     user_id = payload.user_id
     company_id = payload.company_id
 
-    if not any([user_id, company_id]):
+    if not all([user_id, company_id]):
         raise InvalidTokenException()
 
     user = await user_repository.find_by_id(user_id, company_id)
