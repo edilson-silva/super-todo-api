@@ -6,6 +6,7 @@ import pytest
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
+from uuid_extensions import uuid7str
 
 from src.application.dtos.security.token_generator_encode_dto import (
     TokenGeneratorEncodeInputDTO,
@@ -212,6 +213,22 @@ async def empty_token(admin_user: User) -> TokenGeneratorEncodeOutputDTO:
 async def invalid_token() -> TokenGeneratorEncodeOutputDTO:
     token = TokenGeneratorEncodeOutputDTO(
         access_token='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIwNjhmMDUxMi1jZDA4LTdmMmMtODAwMC0wNWQ3MGM5ZGQ2NmYiLCJyb2xlIjoiYWRtaW4iLCJjb21wYW55IjoiIn0.FOeuvvLxOpoLZK19ui4wcPqJRuYWAnMrl4XImp4z0T0'
+    )
+
+    return token
+
+
+@pytest.fixture
+async def invalid_user_token(
+    token_generator: TokenGenerator, admin_user: User
+) -> TokenGeneratorEncodeOutputDTO:
+    token_generator_encode_input_dto = TokenGeneratorEncodeInputDTO(
+        user_id=uuid7str(),
+        user_role=UserRole(admin_user.role),
+        company_id=str(admin_user.company_id),
+    )
+    token = await token_generator.async_encode(
+        token_generator_encode_input_dto
     )
 
     return token
