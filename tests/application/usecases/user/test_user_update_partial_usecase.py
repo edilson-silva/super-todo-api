@@ -14,6 +14,7 @@ from src.application.usecases.user.user_update_partial_usecase import (
 )
 from src.domain.entities.user_entity import User
 from src.domain.entities.user_role import UserRole
+from src.domain.exceptions.auth_exceptions import UnauthorizedException
 from src.domain.exceptions.exceptions import NotFoundException
 from src.domain.repositories.user_repository import UserRepository
 from src.domain.security.password_hasher import PasswordHasher
@@ -197,6 +198,31 @@ class TestUserUpdatePartialUsecase:
         assert user_updated.created_at == user_expected.created_at
         assert isinstance(user_updated.updated_at, datetime)
         assert user_updated.updated_at == mock_update_datetime
+
+    async def test_non_admin_user_cannot_update_another_user(
+        self, setup: SetupType
+    ):
+        users, usecase = setup
+        requester = users[1]
+        user_expected = users[0]
+        user_expected_id = str(user_expected.id)
+
+        user_update_partial_dto = UserUpdatePartialInputDTO(
+            name='Updated Name',
+            password='updated_pass',
+            role=UserRole.USER,
+            avatar='updated_avatar',
+        )
+
+        with pytest.raises(UnauthorizedException) as exc:
+            await usecase.execute(
+                requester, user_expected_id, user_update_partial_dto
+            )
+
+        assert (
+            str(exc.value)
+            == "You don't have enough permission to perform this action"
+        )
 
     async def test_invalid_id_should_raise_exception(self, setup: SetupType):
         users, usecase = setup
