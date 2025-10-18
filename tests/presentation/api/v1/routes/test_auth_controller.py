@@ -132,5 +132,5 @@ class TestAuthSigninController:
             },
         )
 
-        assert response.status_code == status.HTTP_401_UNAUTHORIZED
-        assert response.json() == {'detail': 'Unauthorized'}
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+        assert response.json() == {'detail': 'Not found'}
