@@ -122,6 +122,19 @@ class TestAuthSigninController:
         assert access_token['token_type'] == settings.ACCESS_TOKEN_TYPE
 
     async def test_invalid_user_credentials_should_return_unauthorized_error(
+        self, client: AsyncClient, admin_user: User, admin_user_info: dict
+    ):
+        response = await client.post(
+            '/auth/signin',
+            data={
+                'username': admin_user_info['email'],
+                'password': 'WrongPassword123!',
+            },
+        )
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+        assert response.json() == {'detail': 'Invalid credentials'}
+
+    async def test_non_existing_user_should_return_not_found_error(
         self, client: AsyncClient, admin_user_info: dict
     ):
         response = await client.post(
