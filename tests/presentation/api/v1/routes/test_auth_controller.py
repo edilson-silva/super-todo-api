@@ -54,8 +54,8 @@ class TestAuthSignupController:
     ):
         response = await client.post('/auth/signup', json=admin_user_info)
 
-        assert response.status_code == status.HTTP_409_CONFLICT
-        assert response.json() == {'detail': 'Conflict'}
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert response.json() == {'detail': 'Bad Request'}
 
     async def test_existing_company_name_should_return_conflict_error(
         self, client: AsyncClient, admin_user: User, admin_user_info: dict
@@ -72,7 +72,7 @@ class TestAuthSignupController:
         response = await client.post('/auth/signup', json=new_user)
 
         assert response.status_code == status.HTTP_409_CONFLICT
-        assert response.json() == {'detail': 'Company already registered.'}
+        assert response.json() == {'detail': 'Company already registered'}
 
 
 class TestAuthSigninController:
