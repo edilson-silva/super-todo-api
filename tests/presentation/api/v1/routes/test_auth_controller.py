@@ -57,6 +57,23 @@ class TestAuthSignupController:
         assert response.status_code == status.HTTP_409_CONFLICT
         assert response.json() == {'detail': 'Conflict'}
 
+    async def test_existing_company_name_should_return_conflict_error(
+        self, client: AsyncClient, admin_user: User, admin_user_info: dict
+    ):
+        await client.post('/auth/signup', json=admin_user_info)
+
+        new_user = {
+            'company_name': admin_user_info['company_name'],
+            'name': 'Another User',
+            'email': 'anotheruser@example.com',
+            'password': 'AnotherPassword123!',
+        }
+
+        response = await client.post('/auth/signup', json=new_user)
+
+        assert response.status_code == status.HTTP_409_CONFLICT
+        assert response.json() == {'detail': 'Company already registered.'}
+
 
 class TestAuthSigninController:
     async def test_missing_request_params_should_return_unprocessable_error(
