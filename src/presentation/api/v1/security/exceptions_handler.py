@@ -5,6 +5,9 @@ from src.domain.exceptions.auth_exceptions import (
     InvalidTokenException,
     UnauthorizedException,
 )
+from src.domain.exceptions.company_exceptions import (
+    CompanyAlreadyRegisteredException,
+)
 from src.domain.exceptions.exceptions import NotFoundException
 from src.domain.exceptions.user_exceptions import UserAlreadyExistsException
 
@@ -43,5 +46,14 @@ def http_exception_handler(app: FastAPI):
     ):
         return JSONResponse(
             status_code=status.HTTP_404_NOT_FOUND,
+            content={'detail': str(exc)},
+        )
+
+    @app.exception_handler(CompanyAlreadyRegisteredException)
+    async def company_already_registered_exception_handler(
+        request: Request, exc: CompanyAlreadyRegisteredException
+    ):
+        return JSONResponse(
+            status_code=status.HTTP_409_CONFLICT,
             content={'detail': str(exc)},
         )
