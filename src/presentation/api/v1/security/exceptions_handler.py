@@ -2,6 +2,7 @@ from fastapi import FastAPI, Request, status
 from starlette.responses import JSONResponse
 
 from src.domain.exceptions.auth_exceptions import (
+    InvalidCredentialsException,
     InvalidTokenException,
     UnauthorizedException,
 )
@@ -20,6 +21,15 @@ def http_exception_handler(app: FastAPI):
         return JSONResponse(
             status_code=status.HTTP_400_BAD_REQUEST,
             content={'detail': 'Bad Request'},
+        )
+
+    @app.exception_handler(InvalidCredentialsException)
+    async def invalid_credentials_exception_handler(
+        request: Request, exc: InvalidCredentialsException
+    ):
+        return JSONResponse(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            content={'detail': str(exc)},
         )
 
     @app.exception_handler(InvalidTokenException)
