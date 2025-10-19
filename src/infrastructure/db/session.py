@@ -28,5 +28,5 @@ async def get_db() -> AsyncGenerator[AsyncSession, None]:
 
     :return: An instance of AsyncSession.
     """
-    async with AsyncSessionLocal() as session:
+    async with AsyncSessionLocal() as session:  # pragma: no cover
         yield session
