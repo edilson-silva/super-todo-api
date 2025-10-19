@@ -29,3 +29,21 @@ class TestUserRepositorySQLAlchemy:
         assert created_user.role == user.role
         assert created_user.company_id == str(user.company_id)
         assert created_user.avatar == user.avatar
+
+    async def test_find_by_valid_email_should_return_user(
+        self,
+        user_repository: UserRepository,
+        admin_user: User,
+    ):
+        found_user = await user_repository.find_by_email(admin_user.email)
+
+        assert isinstance(found_user, User)
+        assert found_user.id == admin_user.id
+        assert found_user.email == admin_user.email
+        assert found_user.name == admin_user.name
+        assert found_user.password == admin_user.password
+        assert found_user.role == admin_user.role
+        assert found_user.company_id == admin_user.company_id
+        assert found_user.avatar == admin_user.avatar
+        assert found_user.created_at == admin_user.created_at
+        assert found_user.updated_at == admin_user.updated_at
