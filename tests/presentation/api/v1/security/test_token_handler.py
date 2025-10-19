@@ -25,3 +25,15 @@ class TestGetRequesterFromToken:
             )
 
         assert str(exc_info.value) == 'Invalid token'
+
+    async def test_invalid_token_body_should_raise_invalid_token_exception(
+        self,
+        token_generator: TokenGenerator,
+        user_repository: UserRepository,
+    ):
+        with pytest.raises(InvalidTokenException) as exc_info:
+            await get_requester_from_token(
+                'invalid-token', token_generator, user_repository
+            )
+
+        assert str(exc_info.value) == 'Invalid token'
