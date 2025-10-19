@@ -2,6 +2,7 @@ import pytest
 from uuid_extensions import uuid7str
 
 from src.domain.entities.user_entity import User
+from src.domain.entities.user_role import UserRole
 from src.domain.repositories.user_repository import UserRepository
 
 
@@ -207,3 +208,25 @@ class TestUserRepositorySQLAlchemy:
 
         assert isinstance(found_users, list)
         assert len(found_users) == len(admin_company_users)
+
+    async def test_update_user_should_return_updated_user(
+        self,
+        user_repository: UserRepository,
+        admin_user: User,
+    ):
+        admin_user.name = 'Updated Name'
+        admin_user.avatar = 'updated_avatar.png'
+        admin_user.role = UserRole.USER
+
+        updated_user = await user_repository.update(admin_user)
+
+        assert isinstance(updated_user, User)
+        assert updated_user.id == admin_user.id
+        assert updated_user.name == admin_user.name
+        assert updated_user.email == admin_user.email
+        assert updated_user.password == admin_user.password
+        assert updated_user.role == admin_user.role
+        assert updated_user.company_id == admin_user.company_id
+        assert updated_user.avatar == admin_user.avatar
+        assert updated_user.created_at == admin_user.created_at
+        assert updated_user.updated_at >= admin_user.updated_at
