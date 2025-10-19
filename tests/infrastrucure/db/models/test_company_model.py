@@ -4,6 +4,7 @@ import pytest
 from uuid_extensions import uuid7str
 
 from src.domain.entities.company_type import CompanyType
+from src.domain.exceptions.exceptions import OperationException
 from src.infrastructure.db.models.company_model import CompanyModel
 
 mock_datetime = datetime(
@@ -48,9 +49,9 @@ class TestCompanyModel:
             'updated_at': mock_datetime,
         }
 
-        with pytest.raises(ValueError) as exc_info:
+        with pytest.raises(OperationException) as exc_info:
             CompanyModel(**company_info)
 
         assert str(exc_info.value) == (
-            'Max users value must be greater than 0, but got 0'
+            'Operation failed: Max users must be greater than 0, but got 0'
         )
