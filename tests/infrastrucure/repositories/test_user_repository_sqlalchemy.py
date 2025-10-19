@@ -173,3 +173,37 @@ class TestUserRepositorySQLAlchemy:
 
         assert isinstance(found_users, list)
         assert len(found_users) == len(admin_company_users) - 1
+
+    async def test_delete_by_id_with_invalid_id_should_do_nothing(
+        self,
+        user_repository: UserRepository,
+        admin_company_users: list[User],
+        admin_user: User,
+    ):
+        delete_user_id = uuid7str()
+
+        found_users = await user_repository.find_all(
+            str(admin_user.company_id), limit=10, offset=0
+        )
+
+        assert isinstance(found_users, list)
+        assert len(found_users) == len(admin_company_users)
+
+        deleted = await user_repository.delete_by_id(
+            str(delete_user_id), str(admin_user.company_id)
+        )
+
+        assert deleted is None
+
+        found_user = await user_repository.find_by_id(
+            delete_user_id, str(admin_user.company_id)
+        )
+
+        assert found_user is None
+
+        found_users = await user_repository.find_all(
+            str(admin_user.company_id), limit=10, offset=0
+        )
+
+        assert isinstance(found_users, list)
+        assert len(found_users) == len(admin_company_users)
