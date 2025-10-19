@@ -4,6 +4,7 @@ from sqlalchemy import DateTime, Enum, Integer, String, Uuid, orm
 from sqlalchemy.orm import Mapped, mapped_column
 
 from src.domain.entities.company_type import CompanyType
+from src.domain.exceptions.exceptions import OperationException
 
 from ..session import Base
 
@@ -31,7 +32,7 @@ class CompanyModel(Base):
     @orm.validates('max_users')
     def validate_max_users(self, key, value):
         if value is not None and value < 1:
-            raise ValueError(
-                f'Max users value must be greater than 0, but got {value}'
+            raise OperationException(
+                f'Max users must be greater than 0, but got {value}'
             )
         return value
