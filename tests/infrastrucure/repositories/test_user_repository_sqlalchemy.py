@@ -83,3 +83,29 @@ class TestUserRepositorySQLAlchemy:
         found_user = await user_repository.find_by_id(uuid7str(), uuid7str())
 
         assert found_user is None
+
+    async def test_find_all_should_return_users(
+        self,
+        user_repository: UserRepository,
+        admin_company_users: list[User],
+        admin_user: User,
+    ):
+        found_users = await user_repository.find_all(
+            str(admin_user.company_id), limit=10, offset=0
+        )
+
+        assert isinstance(found_users, list)
+        assert len(found_users) == len(admin_company_users)
+
+        for found_user, admin_company_user in zip(
+            found_users, admin_company_users
+        ):
+            assert found_user.id == admin_company_user.id
+            assert found_user.email == admin_company_user.email
+            assert found_user.name == admin_company_user.name
+            assert found_user.password == admin_company_user.password
+            assert found_user.role == admin_company_user.role
+            assert found_user.company_id == admin_company_user.company_id
+            assert found_user.avatar == admin_company_user.avatar
+            assert found_user.created_at == admin_company_user.created_at
+            assert found_user.updated_at == admin_company_user.updated_at
