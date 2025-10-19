@@ -76,3 +76,10 @@ class TestUserRepositorySQLAlchemy:
         assert found_user.avatar == admin_user.avatar
         assert found_user.created_at == admin_user.created_at
         assert found_user.updated_at == admin_user.updated_at
+
+    async def test_find_by_invalid_id_should_return_none(
+        self, user_repository: UserRepository
+    ):
+        found_user = await user_repository.find_by_id(uuid7str(), uuid7str())
+
+        assert found_user is None
