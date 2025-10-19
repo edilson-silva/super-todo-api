@@ -3,6 +3,7 @@ import pytest
 from src.application.dtos.security.token_generator_encode_dto import (
     TokenGeneratorEncodeOutputDTO,
 )
+from src.domain.entities.user_entity import User
 from src.domain.exceptions.auth_exceptions import (
     InvalidTokenException,
     UnauthorizedException,
@@ -68,3 +69,26 @@ class TestGetRequesterFromToken:
             )
 
         assert str(exc_info.value) == 'Unauthorized'
+
+    async def test_valid_token_should_return_user(
+        self,
+        admin_user: User,
+        admin_user_token: TokenGeneratorEncodeOutputDTO,
+        token_generator: TokenGenerator,
+        user_repository: UserRepository,
+    ):
+        user = await get_requester_from_token(
+            admin_user_token.access_token,
+            token_generator,
+            user_repository,
+        )
+
+        assert isinstance(user, User)
+        assert user.id == admin_user.id
+        assert user.email == admin_user.email
+        assert user.role == admin_user.role
+        assert user.password == admin_user.password
+        assert user.avatar == admin_user.avatar
+        assert user.company_id == admin_user.company_id
+        assert user.created_at == admin_user.created_at
+        assert user.updated_at == admin_user.updated_at
