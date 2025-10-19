@@ -21,7 +21,7 @@ class TestCompanyRepositorySQLAlchemy:
 
         created_company = await company_repository.create(company)
 
-        assert created_company is not None
+        assert isinstance(created_company, Company)
         assert created_company.id == str(company.id)
         assert created_company.name == company.name
 
@@ -35,7 +35,22 @@ class TestCompanyRepositorySQLAlchemy:
 
         found_company = await company_repository.find_by_name(company_name)
 
-        assert found_company is not None
+        assert isinstance(found_company, Company)
         assert found_company.id is not None
         assert isinstance(found_company.id, str)
         assert found_company.name == company_name
+
+    async def test_create_company_failure(self):
+        company = Company(name='Test Company')
+
+        # Fake session that raises SQLAlchemyError on add
+        fake_session = MagicMock()
+        fake_session.add.side_effect = SQLAlchemyError('DB Error')
+        fake_session.commit = AsyncMock()
+
+        company_repository = CompanyRepositorySQLAlchemy(fake_session)
+
+        with pytest.raises(CannotOperateException) as exc_info:
+            await company_repository.create(company)
+
+        assert str(exc_info.value) == 'Cannot operate: Try again later'
